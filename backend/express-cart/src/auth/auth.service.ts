@@ -89,7 +89,12 @@ export class AuthService {
     const payload = await this.verifyRefreshToken(dto.refreshToken);
     const user = await this.usersService.findWithAccessById(payload.sub);
 
-    if (!user || !user.refreshTokenHash) {
+    if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    if (!user.refreshTokenHash) {
+      // No refresh token stored for this user
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -99,9 +104,13 @@ export class AuthService {
     );
 
     if (!isRefreshTokenValid) {
-      throw new UnauthorizedException('Invalid refresh token');
+      // Refresh token failed to match stored hash — possible token reuse/compromise.
+      // Clear stored refresh token to revoke any existing session and force full re-authentication.
+      await this.usersService.clearRefreshToken(user.id);
+      throw new UnauthorizedException('Refresh token reuse detected');
     }
 
+    // Rotate refresh token on successful use
     const tokens = await this.issueTokens(user.id, user.email);
     await this.usersService.setRefreshTokenHash(
       user.id,

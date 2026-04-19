@@ -19,7 +19,7 @@ import { UpdateRoleDto } from './dto/update-role.dto/update-role.dto';
 import { PermissionGuard } from './guards/permission.guard/permission.guard';
 import { RbacService } from './rbac.service';
 
-@Controller({ path: 'admin', version: '1' })
+@Controller('admin')
 @UseGuards(JwtAuthGuard, PermissionGuard)
 export class RbacController {
   constructor(private readonly rbacService: RbacService) {}

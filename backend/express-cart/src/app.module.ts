@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { CatalogModule } from './catalog/catalog.module';
+import { MediaModule } from './media/media.module';
 import { AdminProfile } from './database/entities/admin-profile.entity/admin-profile.entity';
 import { CustomerProfile } from './database/entities/customer-profile.entity/customer-profile.entity';
 import { OtpToken } from './database/entities/otp-token.entity/otp-token.entity';
@@ -15,6 +17,12 @@ import { User } from './database/entities/user.entity/user.entity';
 import { OtpModule } from './otp/otp.module';
 import { RbacModule } from './rbac/rbac.module';
 import { UsersModule } from './users/users.module';
+import { Product } from './catalog/entities/product.entity';
+import { FashionProductDetails } from './catalog/entities/fashion-product-details.entity';
+import { FootwearProductDetails } from './catalog/entities/footwear-product-details.entity';
+import { DeviceProductDetails } from './catalog/entities/device-product-details.entity';
+import { BookProductDetails } from './catalog/entities/book-product-details.entity';
+import { ProductImage } from './media/entities/product-image.entity';
 
 @Module({
   imports: [
@@ -37,6 +45,12 @@ import { UsersModule } from './users/users.module';
           RolePermission,
           UserRole,
           OtpToken,
+          Product,
+          FashionProductDetails,
+          FootwearProductDetails,
+          DeviceProductDetails,
+          BookProductDetails,
+          ProductImage,
         ],
         synchronize: (configService.get<string>('DB_SYNC') ?? 'true') === 'true',
         logging: (configService.get<string>('DB_LOGGING') ?? 'false') === 'true',
@@ -46,6 +60,8 @@ import { UsersModule } from './users/users.module';
     OtpModule,
     AuthModule,
     RbacModule,
+    CatalogModule,
+    MediaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

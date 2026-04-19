@@ -11,12 +11,14 @@ import {
   OtpPurpose,
   OtpToken,
 } from '../database/entities/otp-token.entity/otp-token.entity';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class OtpService {
   constructor(
     @InjectRepository(OtpToken)
     private readonly otpRepo: Repository<OtpToken>,
+    private readonly emailService: EmailService,
   ) {}
 
   async sendOtp(email: string, purpose: OtpPurpose, userId?: string): Promise<string> {
@@ -48,6 +50,14 @@ export class OtpService {
     });
 
     await this.otpRepo.save(token);
+    
+    // Send email
+    await this.emailService.sendEmail(
+      email,
+      'Your OTP Code',
+      `Your OTP code is ${code}. It expires in 10 minutes.`,
+    );
+
     return code;
   }
 

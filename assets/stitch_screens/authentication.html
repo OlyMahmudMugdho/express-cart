@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BeliBeli | Sign In</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ba1a1a",
+                    "surface-container-highest": "#e1e3e4",
+                    "tertiary-container": "#9b5a41",
+                    "secondary-fixed-dim": "#c4c4df",
+                    "primary-fixed-dim": "#82d3de",
+                    "outline-variant": "#bdc9c5",
+                    "background": "#f8f9fa",
+                    "surface-bright": "#f8f9fa",
+                    "tertiary-fixed-dim": "#ffb59a",
+                    "on-secondary-fixed-variant": "#43455b",
+                    "inverse-surface": "#2e3132",
+                    "surface-variant": "#e1e3e4",
+                    "surface-tint": "#006972",
+                    "surface-container-low": "#f3f4f5",
+                    "tertiary": "#7e432b",
+                    "surface-dim": "#d9dadb",
+                    "primary-container": "#177680",
+                    "secondary": "#5b5d74",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-container": "#5f6178",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e7e8e9",
+                    "on-tertiary-container": "#ffe8e1",
+                    "inverse-primary": "#82d3de",
+                    "on-primary-fixed": "#001f23",
+                    "secondary-fixed": "#e0e0fc",
+                    "surface": "#f8f9fa",
+                    "secondary-container": "#ddddf9",
+                    "on-background": "#191c1d",
+                    "on-surface-variant": "#3e4946",
+                    "on-secondary-fixed": "#181a2e",
+                    "error-container": "#ffdad6",
+                    "on-primary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed": "#380d00",
+                    "on-primary-fixed-variant": "#004f56",
+                    "primary-fixed": "#9ff0fb",
+                    "tertiary-fixed": "#ffdbce",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed-variant": "#6f3720",
+                    "on-secondary": "#ffffff",
+                    "primary": "#005c65",
+                    "surface-container": "#edeeef",
+                    "inverse-on-surface": "#f0f1f2",
+                    "outline": "#6e7a76",
+                    "on-primary-container": "#bff7ff",
+                    "on-surface": "#191c1d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .editorial-shadow {
+            box-shadow: 0 24px 48px -12px rgba(0, 92, 101, 0.08);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body min-h-screen flex flex-col overflow-x-hidden">
+<main class="flex-grow flex flex-col md:flex-row h-screen overflow-hidden">
+<!-- Left Side: Editorial Brand Visual -->
+<section class="hidden md:flex md:w-1/2 lg:w-[60%] relative overflow-hidden bg-primary-container">
+<div class="absolute inset-0 z-0">
+<img alt="Striking luxury designer accessory composition in a minimalist architectural setting with dramatic lighting and clean lines" class="w-full h-full object-cover opacity-90 scale-105" data-alt="High-fashion product photography featuring a luxury bag in a geometric, architectural environment with teal and terracotta accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRwyCX7rCcbMpL_Ly6qGE2yBsS2cRGa5v1zQbHkQVJA1Ih5zKNRaXh_tBExP7LFCWZR6iuBjInizCdPKb_6NcP1Bo7yaSmYJRWbZQ0ObOh-bt-l5R3syAM1GLOWxff4a5pnYCIKvbEdiwh2h1FoRi2msACWO4Dtyfb4DPotyGSMlyRs8bCfK-jlS4y9jL3YrC84Y2SgLqp72pyrXS_yUdkGNSg2jxxG4KOP_CoWXGbycbFuXPsttwXVhy85-4l1VGTvs47NumQLEY"/>
+<div class="absolute inset-0 bg-gradient-to-tr from-primary/40 to-transparent mix-blend-multiply"></div>
+</div>
+<div class="relative z-10 p-16 flex flex-col justify-between h-full w-full">
+<div>
+<span class="text-on-primary-container font-headline text-3xl font-extrabold tracking-tighter">BeliBeli</span>
+</div>
+<div class="max-w-xl">
+<h1 class="font-headline text-5xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight mb-8">
+                        The Curated <br/>Experience.
+                    </h1>
+<div class="flex gap-4 items-center text-on-primary-container/90">
+<div class="h-[1px] w-12 bg-on-primary-container/50"></div>
+<p class="font-label uppercase tracking-[0.2em] text-xs font-semibold">Volume 04 / Autumn Collection</p>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<p class="text-on-primary-container/80 text-sm max-w-xs leading-relaxed">
+                        Join our exclusive community of tastemakers and discover the art of intentional shopping.
+                    </p>
+<div class="flex space-x-4">
+<span class="material-symbols-outlined text-white/50 text-2xl">arrow_outward</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Side: Auth Container -->
+<section class="w-full md:w-1/2 lg:w-[40%] bg-surface flex flex-col overflow-y-auto hide-scrollbar">
+<!-- Mobile Header -->
+<header class="md:hidden p-8 flex justify-between items-center">
+<span class="text-primary font-headline text-2xl font-extrabold tracking-tighter">BeliBeli</span>
+<span class="material-symbols-outlined text-outline">close</span>
+</header>
+<div class="flex-grow flex flex-col justify-center px-8 sm:px-12 md:px-16 lg:px-20 py-12">
+<!-- Auth Tabs Toggle -->
+<div class="mb-12 flex items-center space-x-8">
+<button class="font-headline text-2xl font-bold text-on-surface border-b-4 border-primary pb-2 transition-all">Sign In</button>
+<button class="font-headline text-2xl font-bold text-outline-variant hover:text-outline pb-2 transition-all">Register</button>
+</div>
+<!-- Form Section (Login State) -->
+<div class="space-y-8 max-w-md w-full" id="login-form">
+<div class="space-y-6">
+<div class="group">
+<label class="block font-label text-[10px] uppercase tracking-widest font-bold text-outline mb-2 group-focus-within:text-primary transition-colors">Email Address</label>
+<input class="w-full bg-surface-container-low border-none rounded-lg p-4 text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all" placeholder="editorial@belibeli.com" type="email"/>
+</div>
+<div class="group">
+<div class="flex justify-between items-center mb-2">
+<label class="block font-label text-[10px] uppercase tracking-widest font-bold text-outline group-focus-within:text-primary transition-colors">Password</label>
+<a class="text-[10px] font-bold text-tertiary uppercase tracking-widest hover:opacity-70" href="#">Forgot?</a>
+</div>
+<input class="w-full bg-surface-container-low border-none rounded-lg p-4 text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary py-5 rounded-lg font-headline font-bold text-sm tracking-widest uppercase editorial-shadow hover:bg-primary-container transition-all active:scale-[0.98]">
+                        Access Collection
+                    </button>
+<div class="relative py-4">
+<div class="absolute inset-0 flex items-center"><div class="w-full border-t border-surface-container-highest"></div></div>
+<div class="relative flex justify-center text-[10px] uppercase tracking-[0.3em] font-bold text-outline-variant bg-surface px-4">Or continue with</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center space-x-3 bg-surface-container-lowest border border-outline-variant/30 py-4 rounded-lg hover:bg-surface-container-low transition-colors">
+<img alt="Google logo" class="w-5 h-5" data-alt="Official colorful Google logo icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOHBXAqzebtI3wzKy2H40HYlSrlHTmKoWcn6bEVjNvWzgpCxEuGQ7XFsXprESDrtg9pGFZDXFlfpLu8rU_ycXWNO9HcqHU5UcPikjGjhY5urqiaOXUXRICQ4DK6gjWvVkb8Y2VnFhSOPl3oJI2eg6WfuchZGiMhVY_0hQowJd3BRF9OVPswjUEQD-W5Q3UoKgx8ZjqrzBBt0zJIxgXVCz-tUsWwhUxL_b6eSOGj5b_ED4PY8n1zVlKwdo7zTy2VsVVnOTBE4nkQwA"/>
+<span class="font-label text-xs font-semibold uppercase tracking-wider text-on-surface">Google</span>
+</button>
+<button class="flex items-center justify-center space-x-3 bg-surface-container-lowest border border-outline-variant/30 py-4 rounded-lg hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">ios</span>
+<span class="font-label text-xs font-semibold uppercase tracking-wider text-on-surface">Apple</span>
+</button>
+</div>
+</div>
+<!-- OTP Section (Initially Hidden in visual but present for requirements) -->
+<div class="hidden mt-12 p-8 bg-surface-container-low rounded-xl border-l-4 border-tertiary" id="otp-section">
+<h3 class="font-headline text-lg font-bold text-on-surface mb-2">Verify Identity</h3>
+<p class="text-sm text-on-surface-variant mb-6">A 6-digit code has been sent to your editorial email.</p>
+<div class="flex space-x-3 mb-8">
+<input class="w-12 h-14 bg-surface-container-lowest border-none rounded-lg text-center font-headline text-xl font-bold focus:ring-2 focus:ring-tertiary" maxlength="1" type="text"/>
+<input class="w-12 h-14 bg-surface-container-lowest border-none rounded-lg text-center font-headline text-xl font-bold focus:ring-2 focus:ring-tertiary" maxlength="1" type="text"/>
+<input class="w-12 h-14 bg-surface-container-lowest border-none rounded-lg text-center font-headline text-xl font-bold focus:ring-2 focus:ring-tertiary" maxlength="1" type="text"/>
+<div class="flex items-center text-outline-variant px-1 font-bold">—</div>
+<input class="w-12 h-14 bg-surface-container-lowest border-none rounded-lg text-center font-headline text-xl font-bold focus:ring-2 focus:ring-tertiary" maxlength="1" type="text"/>
+<input class="w-12 h-14 bg-surface-container-lowest border-none rounded-lg text-center font-headline text-xl font-bold focus:ring-2 focus:ring-tertiary" maxlength="1" type="text"/>
+<input class="w-12 h-14 bg-surface-container-lowest border-none rounded-lg text-center font-headline text-xl font-bold focus:ring-2 focus:ring-tertiary" maxlength="1" type="text"/>
+</div>
+<div class="flex justify-between items-center">
+<button class="text-xs font-bold text-tertiary uppercase tracking-widest hover:underline">Resend OTP</button>
+<span class="text-xs font-label text-outline tabular-nums">00:59</span>
+</div>
+</div>
+</div>
+<!-- Footer Links -->
+<footer class="p-8 mt-auto flex flex-wrap justify-center gap-x-8 gap-y-4 border-t border-surface-container">
+<a class="text-[10px] font-bold text-outline-variant uppercase tracking-widest hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-[10px] font-bold text-outline-variant uppercase tracking-widest hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="text-[10px] font-bold text-outline-variant uppercase tracking-widest hover:text-primary transition-colors" href="#">Help Center</a>
+<a class="text-[10px] font-bold text-outline-variant uppercase tracking-widest hover:text-primary transition-colors" href="#">Contact</a>
+</footer>
+</section>
+</main>
+<!-- Success Toast Notification (Example State) -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-surface py-4 px-8 rounded-full shadow-2xl flex items-center space-x-4 z-[100] hidden">
+<span class="material-symbols-outlined text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-sm font-semibold tracking-wide">Securely authenticated. Welcome back.</span>
+</div>
+</body></html>

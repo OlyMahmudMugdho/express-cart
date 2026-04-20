@@ -107,6 +107,14 @@ export function useApi() {
       });
       return res.json();
     },
+    async placeOrder(addressId?: string, notes?: string) {
+      const res = await fetch(`${BASE}/checkout/place-order`, {
+        method: 'POST',
+        headers: { ...getHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ addressId, notes }),
+      });
+      return res.json();
+    },
     async getOrders() {
       const h = getHeaders();
       console.log('getOrders - hasAuth:', !!h.Authorization);

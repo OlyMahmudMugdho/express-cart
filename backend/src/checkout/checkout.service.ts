@@ -16,7 +16,7 @@ export class CheckoutService {
     @InjectRepository(OrderItem) private itemRepo: Repository<OrderItem>,
     @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
     @InjectRepository(Cart) private cartRepo: Repository<Cart>,
-    @InjectRepository(CartItem) private itemCartRepo: Repository<CartItem>,
+    @InjectRepository(CartItem) private cartItemRepo: Repository<CartItem>,
     @InjectRepository(Product) private productRepo: Repository<Product>,
     @InjectRepository(Address) private addressRepo: Repository<Address>,
   ) {}
@@ -135,8 +135,13 @@ export class CheckoutService {
     });
     await this.paymentRepo.save(payment);
 
-    await this.itemCartRepo.delete({ cartId: cart.id });
+    console.log('Removing cart items for cart:', cart.id);
+    const cartItems = await this.cartItemRepo.find({ where: { cartId: cart.id } });
+    await this.cartItemRepo.remove(cartItems);
+    
+    // Explicitly reset and save the cart
     cart.total = 0;
+    cart.items = []; // Ensure items is empty
     await this.cartRepo.save(cart);
 
     return { order, payment };

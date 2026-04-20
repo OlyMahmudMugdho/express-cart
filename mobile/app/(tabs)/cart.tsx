@@ -212,9 +212,11 @@ export default function Cart() {
           <Text style={styles.totalLabel}>Total</Text>
           <Text style={styles.totalValue}>${subtotal.toFixed(2)}</Text>
         </View>
-        <Button mode="contained" style={styles.checkoutButton} textColor="#fff">
-          Proceed to Checkout
-        </Button>
+        <Link href="/checkout/checkout" asChild>
+          <Button mode="contained" style={styles.checkoutButton} textColor="#fff">
+            Proceed to Checkout
+          </Button>
+        </Link>
       </View>
     </View>
   );

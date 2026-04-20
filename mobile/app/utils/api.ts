@@ -6,11 +6,14 @@ const BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 export function useApi() {
   const { token } = useAuth();
 
-  const headers = (extra: Record<string,string> = {}) => ({
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...extra,
-  });
+  const headers = (extra: Record<string,string> = {}) => {
+    console.log('headers - token:', token ? 'present' : 'missing');
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...extra,
+    };
+  };
 
   return {
     async getProducts() {
@@ -70,7 +73,60 @@ export function useApi() {
       return res.json();
     },
     async getCart() {
-      const res = await fetch(`${BASE}/cart`, { headers: headers() });
+      const reqHeaders = headers();
+      console.log('getCart - token present:', !!reqHeaders.Authorization);
+      try {
+        const res = await fetch(`${BASE}/cart`, { headers: reqHeaders });
+        console.log('getCart status:', res.status);
+        if (!res.ok) {
+          const err = await res.json();
+          console.log('Cart error:', err);
+          return [];
+        }
+        const data = await res.json();
+        console.log('getCart response keys:', Object.keys(data));
+        return data;
+      } catch (err) {
+        console.warn('getCart error:', err);
+        return [];
+      }
+    },
+    async addToCartGuest(productId: string, quantity = 1) {
+      try {
+        const res = await fetch(`${BASE}/cart/guest`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, quantity }),
+        });
+        return res.json();
+      } catch (err) {
+        console.warn('addToCartGuest error:', err);
+        throw err;
+      }
+    },
+    async updateCartItem(itemId: string, quantity: number) {
+      console.log('updateCartItem:', itemId, quantity);
+      const res = await fetch(`${BASE}/cart/items/${itemId}`, {
+        method: 'PATCH',
+        headers: headers(),
+        body: JSON.stringify({ quantity }),
+      });
+      const data = await res.json();
+      console.log('updateCartItem response:', data);
+      return data;
+    },
+    async removeCartItem(itemId: string) {
+      console.log('removeCartItem:', itemId);
+      const res = await fetch(`${BASE}/cart/items/${itemId}`, {
+        method: 'DELETE',
+        headers: headers(),
+      });
+      const data = await res.json();
+      console.log('removeCartItem response:', data);
+      return data;
+    },
+    async getOrders() {
+      const res = await fetch(`${BASE}/orders`, { headers: headers() });
       return res.json();
     },
   };

@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, Image } from 'react-native';
+import { View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
 import { Text, Button, ActivityIndicator } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApi } from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProductDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const api = useApi();
+  const { token } = useAuth();
   const [product, setProduct] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -24,6 +27,26 @@ export default function ProductDetail() {
     })();
   }, [id]);
 
+  const handleAddToCart = async () => {
+    setAdding(true);
+    try {
+      if (token) {
+        await api.addToCart(id as string, 1);
+      } else {
+        await api.addToCartGuest(id as string, 1);
+      }
+      Alert.alert('Success', 'Item added to cart!', [
+        { text: 'Continue Shopping', style: 'cancel' },
+        { text: 'View Cart', onPress: () => router.push('/(tabs)/cart') }
+      ]);
+    } catch (err) {
+      console.warn(err);
+      Alert.alert('Error', 'Failed to add item to cart. Please sign in first.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} />;
   if (!product) return <Text style={{ margin: 16 }}>Product not found.</Text>;
 
@@ -36,7 +59,7 @@ export default function ProductDetail() {
         <Text style={styles.title}>{product.name}</Text>
         <Text style={styles.price}>${product.price}</Text>
         <Text style={styles.description}>{product.description}</Text>
-        <Button mode="contained" style={styles.button} onPress={() => { /* Add to cart logic */ }}>
+        <Button mode="contained" style={styles.button} onPress={handleAddToCart} loading={adding} textColor="#fff">
           Add to Cart
         </Button>
       </View>

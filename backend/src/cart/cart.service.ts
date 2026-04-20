@@ -14,7 +14,7 @@ export class CartService {
   ) {}
 
   private async getOrCreateCart(userId: string) {
-    let cart = await this.cartRepo.findOne({ where: { userId }, relations: ['items', 'items.product'] });
+    let cart = await this.cartRepo.findOne({ where: { userId }, relations: ['items', 'items.product', 'items.product.images'] });
     if (!cart) {
       cart = this.cartRepo.create({ userId });
       await this.cartRepo.save(cart);

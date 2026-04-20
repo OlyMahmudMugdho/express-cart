@@ -11,6 +11,7 @@ type AuthContextType = {
   token: string | null;
   user: any | null;
   pendingAuth: PendingAuth;
+  isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ success: boolean; needsVerification?: boolean; userId?: string }>;
   signUp: (email: string, password: string, firstName?: string, lastName?: string, phone?: string) => Promise<{ success: boolean; needsVerification: boolean; userId: string }>;
   verifyOtp: (code: string) => Promise<{ success: boolean }>;
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   token: null,
   user: null,
   pendingAuth: { userId: null, email: null, type: null },
+  isLoading: true,
   signIn: async () => ({ success: false }),
   signUp: async () => ({ success: false, needsVerification: false, userId: '' }),
   verifyOtp: async () => ({ success: false }),
@@ -218,6 +220,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       token, 
       user, 
       pendingAuth,
+      isLoading: loading,
       signIn, 
       signUp, 
       verifyOtp, 

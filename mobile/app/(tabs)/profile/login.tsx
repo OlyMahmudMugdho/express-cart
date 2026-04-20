@@ -31,7 +31,7 @@ export default function Login() {
     setLoading(false);
     
     if (result.success) {
-      router.push('/profile');
+      router.back();
     } else if (result.needsVerification) {
       router.push({ pathname: '/profile/verify_otp', params: { userId: result.userId, type: 'verification' } });
     } else {

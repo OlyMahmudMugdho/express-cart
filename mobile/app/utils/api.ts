@@ -76,6 +76,10 @@ export function useApi() {
         headers: getHeaders(),
         body: JSON.stringify({ productId, quantity }),
       });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to add to cart');
+      }
       return res.json();
     },
     async getCart() {
@@ -98,6 +102,10 @@ export function useApi() {
         headers: getHeaders(),
         body: JSON.stringify({ quantity }),
       });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to update cart');
+      }
       return res.json();
     },
     async removeCartItem(itemId: string) {
@@ -105,6 +113,10 @@ export function useApi() {
         method: 'DELETE',
         headers: getHeaders(),
       });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to remove from cart');
+      }
       return res.json();
     },
     async addToCartGuest(productId: string, quantity = 1) {
@@ -113,6 +125,10 @@ export function useApi() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId, quantity }),
       });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to add to cart');
+      }
       return res.json();
     },
     async placeOrder(addressId?: string, notes?: string) {
@@ -121,6 +137,10 @@ export function useApi() {
         headers: { ...getHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ addressId, notes }),
       });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to place order');
+      }
       return res.json();
     },
     async getOrders() {

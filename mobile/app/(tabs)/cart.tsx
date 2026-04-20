@@ -4,7 +4,7 @@ import { Text, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useApi } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'expo-router';
+import { Link, useFocusEffect } from 'expo-router';
 
 export default function Cart() {
   const api = useApi();
@@ -49,6 +49,15 @@ export default function Cart() {
       setLoading(false);
     }
   }, [auth.token]);
+
+  // Refresh cart when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (!authLoading && token) {
+        fetchCart();
+      }
+    }, [token, authLoading, fetchCart])
+  );
 
   // Fetch on mount and when token changes
   useEffect(() => {

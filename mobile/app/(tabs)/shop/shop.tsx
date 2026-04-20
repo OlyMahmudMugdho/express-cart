@@ -54,9 +54,14 @@ export default function Products() {
     <View style={styles.container}>
       <Searchbar
         placeholder="Search products..."
+        placeholderTextColor="#94a3b8"
         onChangeText={setSearchQuery}
         value={searchQuery}
         style={styles.searchBar}
+        inputStyle={styles.searchInput}
+        iconColor="#0f172a"
+        rippleColor="#e2e8f0"
+        mode="bar"
       />
       <FlatList
         data={products}
@@ -78,7 +83,18 @@ export default function Products() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
-  searchBar: { margin: 16, elevation: 2, backgroundColor: '#fff' },
+  searchBar: { 
+    margin: 16, 
+    elevation: 4, 
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  searchInput: {
+    color: '#0f172a',
+    fontSize: 16,
+  },
   column: { flex: 1 / 2 },
   loader: { marginVertical: 20 },
   emptyText: { textAlign: 'center', marginTop: 50, color: '#64748b' },

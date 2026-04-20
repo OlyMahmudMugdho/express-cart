@@ -14,8 +14,16 @@ export function useApi() {
   };
 
   return {
-    async getProducts() {
-      const res = await fetch(`${BASE}/products`);
+    async getProducts(params?: { page?: number; limit?: number; categoryId?: string; search?: string; sort?: string }) {
+      const query = new URLSearchParams();
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            query.append(key, value.toString());
+          }
+        });
+      }
+      const res = await fetch(`${BASE}/products?${query.toString()}`);
       return res.json();
     },
     async getProduct(id: string) {

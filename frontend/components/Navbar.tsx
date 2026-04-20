@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Input, Button, Space, Drawer } from 'antd';
 import { ShoppingCartOutlined, SearchOutlined, MenuOutlined } from '@ant-design/icons';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const { Header } = Layout;
 
@@ -11,6 +12,8 @@ export default function Navbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+  const [search, setSearch] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     setIsAuthed(!!localStorage.getItem('token'));
@@ -26,13 +29,23 @@ export default function Navbar() {
     window.location.href = '/';
   };
 
+  const onSearch = (value: string) => {
+    if (value.trim()) {
+      router.push(`/products?search=${encodeURIComponent(value.trim())}`);
+    }
+  };
+
   return (
     <Header style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', position: 'sticky', top: 0, zIndex: 1000 }}>
       <Link href="/" style={{ fontSize: '18px', fontWeight: 'bold', color: '#1677ff' }}>ExpressCart</Link>
 
       {isMobile ? (
         <Space size="small">
-          <Input placeholder="Search" prefix={<SearchOutlined />} style={{ width: '80px' }} />
+          <Input.Search 
+            placeholder="Search" 
+            onSearch={onSearch}
+            style={{ width: '120px' }} 
+          />
           <Button icon={<ShoppingCartOutlined />} type="text" />
           <Button icon={<MenuOutlined />} onClick={() => setIsDrawerOpen(true)} type="text" />
         </Space>
@@ -40,7 +53,11 @@ export default function Navbar() {
         <>
           <Menu mode="horizontal" style={{ flex: 1, border: 'none', justifyContent: 'center' }} items={[{ key: 'shop', label: <Link href="/products">Shop</Link> }, { key: 'deals', label: 'Deals' }]} />
           <Space size="small">
-            <Input placeholder="Search" prefix={<SearchOutlined />} style={{ width: '150px' }} />
+            <Input.Search 
+              placeholder="Search products..." 
+              onSearch={onSearch}
+              style={{ width: '250px' }} 
+            />
             <Button icon={<ShoppingCartOutlined />} type="text" />
             {isAuthed ? (
               <>

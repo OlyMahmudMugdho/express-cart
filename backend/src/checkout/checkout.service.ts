@@ -24,6 +24,7 @@ export class CheckoutService {
   async getOrders(userId: string) {
     return this.orderRepo.find({
       where: { userId },
+      relations: ['items'],
       order: { createdAt: 'DESC' },
     });
   }

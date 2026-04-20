@@ -20,6 +20,7 @@ export class CheckoutController {
   @Get('orders')
   @UseGuards(JwtAuthGuard)
   async getOrders(@Request() req: any) {
+    console.log('>>> getOrders called with user:', req.user);
     return this.checkoutService.getOrders(req.user.id);
   }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
-import { Text, Button } from 'react-native-paper';
+import { View, FlatList, StyleSheet, RefreshControl, Image } from 'react-native';
+import { Text } from 'react-native-paper';
 import { useApi } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -17,7 +17,7 @@ interface OrderItem {
 interface Order {
   id: string;
   status: string;
-  total: number;
+  total: number | string;
   items: OrderItem[];
   createdAt: string;
 }
@@ -30,23 +30,47 @@ export default function Orders() {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchOrders = useCallback(async () => {
+    console.log('=== fetchOrders START ===');
+    console.log('token:', token);
     if (!token) {
+      console.log('No token, setting empty orders');
       setLoading(false);
+      setOrders([]);
       return;
     }
     try {
+      console.log('Calling api.getOrders...');
       const res = await api.getOrders();
-      setOrders(res.orders ?? res ?? []);
+      console.log('Got response, type:', typeof res, 'isArray:', Array.isArray(res));
+      console.log('Response:', JSON.stringify(res));
+      
+      // Handle various response formats
+      let ordersArray = [];
+      if (Array.isArray(res)) {
+        ordersArray = res;
+      } else if (res && Array.isArray(res.data)) {
+        ordersArray = res.data;
+      } else if (res && Array.isArray(res.orders)) {
+        ordersArray = res.orders;
+      } else {
+        ordersArray = [];
+      }
+      
+      console.log('Orders array to set:', ordersArray.length);
+      setOrders(ordersArray);
     } catch (err) {
-      console.warn(err);
+      console.warn('Orders error:', err);
+      setOrders([]);
     } finally {
+      console.log('=== fetchOrders END ===');
       setLoading(false);
     }
   }, [token]);
 
   useEffect(() => {
+    console.log('Orders useEffect, token:', !!token);
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -87,7 +111,7 @@ export default function Orders() {
     );
   }
 
-  if (!orders.length) {
+  if (!orders || orders.length === 0) {
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIcon}>
@@ -134,7 +158,7 @@ export default function Orders() {
             </View>
             <View style={styles.orderFooter}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>${item.total?.toFixed(2)}</Text>
+              <Text style={styles.totalValue}>${Number(item.total).toFixed(2)}</Text>
             </View>
           </View>
         )}

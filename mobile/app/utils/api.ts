@@ -1,18 +1,16 @@
 import { useAuth } from '../context/AuthContext';
-import Constants from 'expo-constants';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export function useApi() {
-  const { token } = useAuth();
+  const { token, isLoading } = useAuth();
 
-  const headers = (extra: Record<string,string> = {}) => {
-    console.log('headers - token:', token ? 'present' : 'missing');
-    return {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...extra,
-    };
+  const getHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (!isLoading && token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
   };
 
   return {
@@ -27,7 +25,7 @@ export function useApi() {
     async login(email: string, password: string) {
       const res = await fetch(`${BASE}/auth/login`, {
         method: 'POST',
-        headers: headers(),
+        headers: getHeaders(),
         body: JSON.stringify({ email, password }),
       });
       return res.json();
@@ -35,7 +33,7 @@ export function useApi() {
     async register(payload: { email: string; password: string; firstName?: string; lastName?: string; phone?: string }) {
       const res = await fetch(`${BASE}/auth/register`, {
         method: 'POST',
-        headers: headers(),
+        headers: getHeaders(),
         body: JSON.stringify(payload),
       });
       return res.json();
@@ -43,7 +41,7 @@ export function useApi() {
     async verifyOtp(userId: string, code: string, type: 'verification' | 'password_reset' | 'email_change') {
       const res = await fetch(`${BASE}/auth/verify-otp`, {
         method: 'POST',
-        headers: headers(),
+        headers: getHeaders(),
         body: JSON.stringify({ userId, code, type }),
       });
       return res.json();
@@ -51,7 +49,7 @@ export function useApi() {
     async forgotPassword(email: string) {
       const res = await fetch(`${BASE}/auth/forgot-password`, {
         method: 'POST',
-        headers: headers(),
+        headers: getHeaders(),
         body: JSON.stringify({ email }),
       });
       return res.json();
@@ -59,7 +57,7 @@ export function useApi() {
     async resetPassword(userId: string, code: string, newPassword: string) {
       const res = await fetch(`${BASE}/auth/reset-password`, {
         method: 'POST',
-        headers: headers(),
+        headers: getHeaders(),
         body: JSON.stringify({ userId, code, newPassword }),
       });
       return res.json();
@@ -67,67 +65,67 @@ export function useApi() {
     async addToCart(productId: string, quantity = 1) {
       const res = await fetch(`${BASE}/cart/items`, {
         method: 'POST',
-        headers: headers(),
+        headers: getHeaders(),
         body: JSON.stringify({ productId, quantity }),
       });
       return res.json();
     },
     async getCart() {
-      const reqHeaders = headers();
-      console.log('getCart - token present:', !!reqHeaders.Authorization);
-      try {
-        const res = await fetch(`${BASE}/cart`, { headers: reqHeaders });
-        console.log('getCart status:', res.status);
-        if (!res.ok) {
-          const err = await res.json();
-          console.log('Cart error:', err);
-          return [];
-        }
-        const data = await res.json();
-        console.log('getCart response keys:', Object.keys(data));
-        return data;
-      } catch (err) {
-        console.warn('getCart error:', err);
-        return [];
+      const h = getHeaders();
+      console.log('getCart - hasAuth:', !!h.Authorization);
+      if (!h.Authorization) {
+        return { items: [] };
       }
-    },
-    async addToCartGuest(productId: string, quantity = 1) {
       try {
-        const res = await fetch(`${BASE}/cart/guest`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId, quantity }),
-        });
+        const res = await fetch(`${BASE}/cart`, { headers: h });
+        if (!res.ok) return { items: [] };
         return res.json();
-      } catch (err) {
-        console.warn('addToCartGuest error:', err);
-        throw err;
+      } catch {
+        return { items: [] };
       }
     },
     async updateCartItem(itemId: string, quantity: number) {
-      console.log('updateCartItem:', itemId, quantity);
       const res = await fetch(`${BASE}/cart/items/${itemId}`, {
         method: 'PATCH',
-        headers: headers(),
+        headers: getHeaders(),
         body: JSON.stringify({ quantity }),
       });
-      const data = await res.json();
-      console.log('updateCartItem response:', data);
-      return data;
+      return res.json();
     },
     async removeCartItem(itemId: string) {
-      console.log('removeCartItem:', itemId);
       const res = await fetch(`${BASE}/cart/items/${itemId}`, {
         method: 'DELETE',
-        headers: headers(),
+        headers: getHeaders(),
       });
-      const data = await res.json();
-      console.log('removeCartItem response:', data);
-      return data;
+      return res.json();
+    },
+    async addToCartGuest(productId: string, quantity = 1) {
+      const res = await fetch(`${BASE}/cart/guest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, quantity }),
+      });
+      return res.json();
     },
     async getOrders() {
-      const res = await fetch(`${BASE}/orders`, { headers: headers() });
-      return res.json();
+      const h = getHeaders();
+      console.log('getOrders - hasAuth:', !!h.Authorization);
+      if (!h.Authorization) {
+        console.log('No auth token!');
+        return [];
+      }
+      try {
+        const res = await fetch(`${BASE}/checkout/orders`, { headers: h });
+        console.log('getOrders status:', res.status);
+        if (!res.ok) {
+          console.log('getOrders failed');
+          return [];
+        }
+        return res.json();
+      } catch (err) {
+        console.log('getOrders error:', err);
+        return [];
+      }
     },
   };
 }

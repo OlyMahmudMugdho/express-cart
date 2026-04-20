@@ -77,10 +77,10 @@ export class CheckoutService {
       }
     }
 
-    const subtotal = cart.total;
+    const subtotal = Number(cart.total);
     const shippingCost = subtotal > 100 ? 0 : 10;
-    const tax = subtotal * 0.08;
-    const total = subtotal + shippingCost + tax;
+    const tax = Number((subtotal * 0.08).toFixed(2));
+    const total = Number((subtotal + shippingCost + tax).toFixed(2));
 
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     const order = this.orderRepo.create({

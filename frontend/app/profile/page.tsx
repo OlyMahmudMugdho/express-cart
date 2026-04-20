@@ -137,29 +137,34 @@ export default function ProfilePage() {
       key: '3',
       label: 'Cart',
       children: (
-        <Table dataSource={cart} columns={[
-          { title: 'Product', dataIndex: ['product', 'name'], key: 'name' },
-          { title: 'Price', dataIndex: 'price', key: 'price' },
-          { 
-            title: 'Quantity', 
-            dataIndex: 'quantity', 
-            key: 'quantity', 
-            render: (quantity, record: any) => (
-              <InputNumber 
-                min={1} 
-                defaultValue={quantity} 
-                onBlur={(e) => updateCartItem(record.id, parseInt(e.target.value))} 
-              />
-            )
-          },
-          { 
-            title: 'Action', 
-            key: 'action', 
-            render: (_, record: any) => (
-              <Button danger onClick={() => removeCartItem(record.id)}>Remove</Button>
-            )
-          }
-        ]} rowKey="id" />
+        <>
+          <Table dataSource={cart} columns={[
+            { title: 'Product', dataIndex: ['product', 'name'], key: 'name' },
+            { title: 'Price', dataIndex: 'price', key: 'price' },
+            { 
+              title: 'Quantity', 
+              dataIndex: 'quantity', 
+              key: 'quantity', 
+              render: (quantity, record: any) => (
+                <InputNumber 
+                  min={1} 
+                  defaultValue={quantity} 
+                  onBlur={(e) => updateCartItem(record.id, parseInt(e.target.value))} 
+                />
+              )
+            },
+            { 
+              title: 'Action', 
+              key: 'action', 
+              render: (_, record: any) => (
+                <Button danger onClick={() => removeCartItem(record.id)}>Remove</Button>
+              )
+            }
+          ]} rowKey="id" />
+          <Link href="/checkout">
+              <Button type="primary" size="large" style={{ marginTop: '16px' }}>Proceed to Checkout</Button>
+          </Link>
+        </>
       ),
     },
   ];

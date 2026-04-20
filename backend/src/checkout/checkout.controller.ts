@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Query } from '@nestjs/common';
 import { CheckoutService } from './checkout.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -14,8 +14,8 @@ export class CheckoutController {
 
   @Get('initiate')
   @UseGuards(JwtAuthGuard)
-  initiateCheckout(@Request() req: any, @Body() body: { addressId?: string }) {
-    return this.checkoutService.initiateCheckout(req.user.id, body.addressId);
+  initiateCheckout(@Request() req: any, @Query() query: { addressId?: string }) {
+    return this.checkoutService.initiateCheckout(req.user.id, query.addressId);
   }
 
   @Post('place-order')

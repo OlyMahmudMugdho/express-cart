@@ -3,7 +3,7 @@ import { BASE_URI } from '@/constants/api';
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Layout, Typography, Button, Spin, Row, Col, Breadcrumb, Menu, Input, Space, Divider, Drawer } from 'antd';
+import { Layout, Typography, Button, Spin, Row, Col, Breadcrumb, Menu, Input, Space, Divider, Drawer, message } from 'antd';
 import { ShoppingCartOutlined, SearchOutlined, MenuOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
@@ -19,7 +19,7 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/products/${id}`);
+        const res = await fetch(`${BASE_URI}/products/${id}`);
         const data = await res.json();
         setProduct(data);
       } catch (e) {
@@ -30,6 +30,27 @@ export default function ProductDetailsPage() {
     };
     fetchProduct();
   }, [id]);
+
+  const addToCart = async () => {
+    try {
+      const res = await fetch(`${BASE_URI}/cart/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ productId: id, quantity: 1 }),
+      });
+      if (res.ok) {
+        message.success('Added to cart');
+      } else {
+        message.error('Failed to add to cart');
+      }
+    } catch (e) {
+      console.error(e);
+      message.error('An error occurred');
+    }
+  };
 
   if (loading) return <Spin fullscreen />;
   if (!product) return <div>Product not found</div>;
@@ -61,7 +82,7 @@ export default function ProductDetailsPage() {
             <Paragraph><strong>Category:</strong> {product.category?.name}</Paragraph>
             <Paragraph><strong>Stock:</strong> {product.stockQuantity > 0 ? `${product.stockQuantity} available` : 'Out of stock'}</Paragraph>
             <Paragraph>{product.description}</Paragraph>
-            <Button type="primary" size="large" icon={<ShoppingCartOutlined />} disabled={product.stockQuantity === 0}>
+            <Button type="primary" size="large" icon={<ShoppingCartOutlined />} disabled={product.stockQuantity === 0} onClick={addToCart}>
               {product.stockQuantity > 0 ? 'Add to Cart' : 'Out of Stock'}
             </Button>
           </Col>

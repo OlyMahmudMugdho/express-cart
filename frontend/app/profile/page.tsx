@@ -1,8 +1,7 @@
 'use client';
-import { BASE_URI } from '@/constants/api';
 
 import React, { useEffect, useState } from 'react';
-import { Layout, Button, Typography, message, Spin, Tabs, Table, List, Descriptions } from 'antd';
+import { Layout, Form, Input, Button, Typography, message, Spin, Tabs, Table, List, Descriptions, InputNumber } from 'antd';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 
@@ -11,27 +10,34 @@ const { Title } = Typography;
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
+  const [form] = Form.useForm();
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [cart, setCart] = useState<any[]>([]);
+
+  const fetchCart = async () => {
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+    const res = await fetch('http://localhost:3000/cart', { headers });
+    const data = await res.json();
+    setCart(data.items || []);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
       try {
-        const [profRes, orderRes, cartRes] = await Promise.all([
-          fetch(BASE_URI + '/users/profile', { headers }),
-          fetch(BASE_URI + '/checkout/orders', { headers }),
-          fetch(BASE_URI + '/cart', { headers })
+        const [profRes, orderRes] = await Promise.all([
+          fetch('http://localhost:3000/users/profile', { headers }),
+          fetch('http://localhost:3000/checkout/orders', { headers })
         ]);
         
         const profData = await profRes.json();
         const orderData = await orderRes.json();
-        const cartData = await cartRes.json();
         
         setProfile(profData);
+        form.setFieldsValue(profData);
         setOrders(Array.isArray(orderData) ? orderData : []);
-        setCart(cartData.items || []);
+        await fetchCart();
       } catch (e) {
         console.error(e);
         message.error('Failed to load dashboard data');
@@ -40,7 +46,61 @@ export default function ProfilePage() {
       }
     };
     fetchData();
-  }, []);
+  }, [form]);
+
+  const updateCartItem = async (itemId: string, quantity: number) => {
+    try {
+      const res = await fetch(`http://localhost:3000/cart/items/${itemId}`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+        },
+        body: JSON.stringify({ quantity }),
+      });
+      if (res.ok) {
+        message.success('Cart updated');
+        fetchCart();
+      } else {
+        message.error('Failed to update cart');
+      }
+    } catch (e) {
+      message.error('An error occurred');
+    }
+  };
+
+  const removeCartItem = async (itemId: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/cart/items/${itemId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+      });
+      if (res.ok) {
+        message.success('Item removed');
+        fetchCart();
+      } else {
+        message.error('Failed to remove item');
+      }
+    } catch (e) {
+      message.error('An error occurred');
+    }
+  };
+
+  const onFinish = async (values: any) => {
+    const res = await fetch('http://localhost:3000/users/profile', {
+      method: 'PATCH',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}` 
+      },
+      body: JSON.stringify(values),
+    });
+    if (res.ok) {
+      message.success('Profile updated');
+    } else {
+      message.error('Failed to update profile');
+    }
+  };
 
   if (loading) return <Spin fullscreen />;
 
@@ -77,7 +137,29 @@ export default function ProfilePage() {
       key: '3',
       label: 'Cart',
       children: (
-        <List dataSource={cart} renderItem={item => <List.Item>{item.product?.name} - ${item.price} (Qty: {item.quantity})</List.Item>} />
+        <Table dataSource={cart} columns={[
+          { title: 'Product', dataIndex: ['product', 'name'], key: 'name' },
+          { title: 'Price', dataIndex: 'price', key: 'price' },
+          { 
+            title: 'Quantity', 
+            dataIndex: 'quantity', 
+            key: 'quantity', 
+            render: (quantity, record: any) => (
+              <InputNumber 
+                min={1} 
+                defaultValue={quantity} 
+                onBlur={(e) => updateCartItem(record.id, parseInt(e.target.value))} 
+              />
+            )
+          },
+          { 
+            title: 'Action', 
+            key: 'action', 
+            render: (_, record: any) => (
+              <Button danger onClick={() => removeCartItem(record.id)}>Remove</Button>
+            )
+          }
+        ]} rowKey="id" />
       ),
     },
   ];

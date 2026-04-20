@@ -2,7 +2,7 @@
 import { BASE_URI } from '@/constants/api';
 
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu, Typography, Row, Col, Card, Button, Input, Space, Spin, Divider, Select, Drawer, Pagination } from 'antd';
+import { Layout, Menu, Typography, Row, Col, Card, Button, Input, Space, Spin, Divider, Select, Drawer, Pagination, message } from 'antd';
 import { ShoppingCartOutlined, SearchOutlined, MenuOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
@@ -21,6 +21,27 @@ export default function AllProductsPage() {
   const [total, setTotal] = useState(0);
   const limit = 8;
 
+  const addToCart = async (productId: string) => {
+    try {
+      const res = await fetch(`${BASE_URI}/cart/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ productId, quantity: 1 }),
+      });
+      if (res.ok) {
+        message.success('Added to cart');
+      } else {
+        message.error('Failed to add to cart');
+      }
+    } catch (e) {
+      console.error(e);
+      message.error('An error occurred');
+    }
+  };
+
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
@@ -34,8 +55,8 @@ export default function AllProductsPage() {
         });
 
         const [prodRes, catRes] = await Promise.all([
-          fetch(`http://localhost:3000/products?${query}`),
-          fetch(BASE_URI + '/categories')
+          fetch(`${BASE_URI}/products?${query}`),
+          fetch(`${BASE_URI}/categories`)
         ]);
         const prodData = await prodRes.json();
         const catData = await catRes.json();
@@ -89,7 +110,7 @@ export default function AllProductsPage() {
                        </div>
                      } 
                    />
-                   <Button type="primary" style={{ marginTop: '16px', width: '100%' }}>Add to Cart</Button>
+                   <Button type="primary" style={{ marginTop: '16px', width: '100%' }} onClick={() => addToCart(p.id)}>Add to Cart</Button>
                  </Card>
                </Col>
              ))}

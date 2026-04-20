@@ -1,4 +1,5 @@
 'use client';
+import { BASE_URI } from '@/constants/api';
 
 import React, { useEffect, useState } from 'react';
 import { Layout, Menu, Typography, Row, Col, Card, Button, Input, Space, Spin, Divider, Select, Drawer, Pagination } from 'antd';
@@ -34,7 +35,7 @@ export default function AllProductsPage() {
 
         const [prodRes, catRes] = await Promise.all([
           fetch(`http://localhost:3000/products?${query}`),
-          fetch('http://localhost:3000/categories')
+          fetch(BASE_URI + '/categories')
         ]);
         const prodData = await prodRes.json();
         const catData = await catRes.json();

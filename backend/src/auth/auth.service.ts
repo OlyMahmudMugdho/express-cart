@@ -23,7 +23,7 @@ export class AuthService {
     private mailerService: MailerService,
   ) {}
 
-  async register(email: string, password: string) {
+  async register(email: string, password: string, firstName?: string, lastName?: string, phone?: string) {
     const existing = await this.userRepo.findOne({ where: { email } });
     if (existing) {
       throw new ConflictException('Email already registered');
@@ -34,6 +34,9 @@ export class AuthService {
       email,
       password: hashedPassword,
       role: Role.CUSTOMER,
+      firstName,
+      lastName,
+      phone,
     });
     await this.userRepo.save(user);
 

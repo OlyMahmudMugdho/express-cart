@@ -1,4 +1,5 @@
 'use client';
+import { BASE_URI } from '@/constants/api';
 
 import React from 'react';
 import { Layout, Form, Input, Button, Typography, message } from 'antd';
@@ -14,16 +15,24 @@ export default function LoginPage() {
 
   const onFinish = async (values: any) => {
     try {
-      const res = await fetch('http://localhost:3000/auth/login', {
+      const res = await fetch(BASE_URI + '/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
       if (res.ok) {
-        message.success('Logged in successfully');
-        router.push('/');
+        const data = await res.json();
+        console.log('Login response data:', data); // Debug log
+        if (data.accessToken) {
+          localStorage.setItem('token', data.accessToken);
+          message.success('Logged in successfully');
+          router.push('/');
+        } else {
+          message.error('Token not found in response');
+        }
       } else {
-        message.error('Invalid credentials');
+        const errorData = await res.json();
+        message.error(errorData.message || 'Invalid credentials');
       }
     } catch (e) {
       message.error('An error occurred');

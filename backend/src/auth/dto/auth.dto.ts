@@ -11,6 +11,15 @@ export class RegisterDto {
     message: 'Password must contain uppercase, lowercase, number and special character',
   })
   password: string;
+
+  @IsString()
+  firstName: string;
+
+  @IsString()
+  lastName: string;
+
+  @IsString()
+  phone: string;
 }
 
 export class LoginDto {

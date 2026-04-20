@@ -1,4 +1,5 @@
 'use client';
+import { BASE_URI } from '@/constants/api';
 
 import React, { useEffect, useState } from 'react';
 import { Layout, Table, Button, Space, Typography, Tag } from 'antd';
@@ -12,7 +13,7 @@ export default function InventoryDashboard() {
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/products')
+    fetch(BASE_URI + '/products')
       .then(res => res.json())
       .then(data => setProducts(data.products || []));
   }, []);

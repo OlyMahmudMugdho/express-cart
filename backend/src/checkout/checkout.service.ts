@@ -21,6 +21,13 @@ export class CheckoutService {
     @InjectRepository(Address) private addressRepo: Repository<Address>,
   ) {}
 
+  async getOrders(userId: string) {
+    return this.orderRepo.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async initiateCheckout(userId: string, addressId?: string) {
     const cart = await this.cartRepo.findOne({
       where: { userId },

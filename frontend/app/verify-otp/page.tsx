@@ -1,4 +1,5 @@
 'use client';
+import { BASE_URI } from '@/constants/api';
 
 import React from 'react';
 import { Layout, Form, Input, Button, Typography, message } from 'antd';
@@ -18,7 +19,7 @@ export default function VerifyOtpPage() {
       return;
     }
     try {
-      const res = await fetch('http://localhost:3000/auth/verify-otp', {
+      const res = await fetch(BASE_URI + '/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...values, userId, type: 'verification' }),

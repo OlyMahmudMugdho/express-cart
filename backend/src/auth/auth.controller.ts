@@ -17,7 +17,7 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() body: RegisterDto) {
-    return this.authService.register(body.email, body.password);
+    return this.authService.register(body.email, body.password, body.firstName, body.lastName, body.phone);
   }
 
   @Post('verify-otp')

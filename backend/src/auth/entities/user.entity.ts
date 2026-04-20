@@ -5,8 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { Role } from './role.enum';
+import { Cart } from '../../cart/entities/cart.entity';
+import { CartItem } from '../../cart/entities/cart-item.entity';
 
 @Entity('users')
 export class User {
@@ -33,6 +36,12 @@ export class User {
 
   @Column({ nullable: true })
   phone: string;
+
+  @OneToMany(() => CartItem, (item) => item.cart, { cascade: true })
+  items: CartItem[];
+
+  @OneToOne(() => Cart, (cart) => cart.user, { cascade: true })
+  cart: Cart;
 
   @Column({ default: 0 })
   failedLoginAttempts: number;

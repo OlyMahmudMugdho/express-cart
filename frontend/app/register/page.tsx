@@ -1,4 +1,5 @@
 'use client';
+import { BASE_URI } from '@/constants/api';
 
 import React from 'react';
 import { Layout, Form, Input, Button, Typography, message } from 'antd';
@@ -14,7 +15,7 @@ export default function RegisterPage() {
 
   const onFinish = async (values: any) => {
     try {
-      const res = await fetch('http://localhost:3000/auth/register', {
+      const res = await fetch(BASE_URI + '/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),

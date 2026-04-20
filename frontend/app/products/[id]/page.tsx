@@ -1,4 +1,5 @@
 'use client';
+import { BASE_URI } from '@/constants/api';
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';

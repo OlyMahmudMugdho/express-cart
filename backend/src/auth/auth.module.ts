@@ -1,5 +1,6 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport'; // Add this
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,11 +8,13 @@ import { User } from './entities/user.entity';
 import { Otp } from './entities/otp.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtStrategy } from './strategies/jwt.strategy'; // Add this
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Otp]),
-    JwtModule.register({ secret: 'secretKey', signOptions: { expiresIn: '1h' } }),
+    PassportModule, // Add this
+    JwtModule.register({ secret: 'default-secret', signOptions: { expiresIn: '1h' } }),
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -32,6 +35,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy], // Add this
 })
 export class AuthModule {}

@@ -6,6 +6,12 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class CheckoutController {
   constructor(private checkoutService: CheckoutService) {}
 
+  @Get('orders')
+  @UseGuards(JwtAuthGuard)
+  async getOrders(@Request() req: any) {
+    return this.checkoutService.getOrders(req.user.id);
+  }
+
   @Get('initiate')
   @UseGuards(JwtAuthGuard)
   initiateCheckout(@Request() req: any, @Body() body: { addressId?: string }) {

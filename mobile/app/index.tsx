@@ -1,12 +1,13 @@
 import React from 'react';
 import { StyleSheet, View, ImageBackground, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Text } from 'react-native-paper';
 import { useAssets } from 'expo-asset';
 
 export default function Index() {
   const [assets] = useAssets([require('../assets/banner.jpg')]);
   const bannerSource = assets?.[0] ? { uri: assets[0].localUri ?? assets[0].uri } : null;
+  const router = useRouter();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -35,11 +36,9 @@ export default function Index() {
           </Text>
         </View>
 
-        <Link href="/products" asChild>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Shop Now</Text>
-          </TouchableOpacity>
-        </Link>
+        <TouchableOpacity style={styles.button} onPress={() => router.push('/(tabs)/shop')}>
+          <Text style={styles.buttonText}>Shop Now</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -91,6 +90,7 @@ const styles = StyleSheet.create({
     color: '#475569',
     lineHeight: 24,
     maxWidth: '90%',
+    marginBottom: 24,
   },
   button: {
     backgroundColor: '#0F172A',

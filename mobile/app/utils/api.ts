@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext';
+import Constants from 'expo-constants';
 
-const BASE = 'http://localhost:3000';
+const BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export function useApi() {
   const { token } = useAuth();

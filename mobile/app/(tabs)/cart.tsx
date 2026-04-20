@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList } from 'react-native';
 import { Text, Button } from 'react-native-paper';
-import { useApi } from './utils/api';
+import { useApi } from '../utils/api';
 
 export default function Cart() {
   const api = useApi();

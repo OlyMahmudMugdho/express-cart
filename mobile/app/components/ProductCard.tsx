@@ -11,9 +11,6 @@ export default function ProductCard({ item }: { item: any }) {
         <Paragraph numberOfLines={2}>{item.description}</Paragraph>
       </Card.Content>
       <Card.Actions>
-        <Link href={`/products/${item.id}`}>
-          <Button>View</Button>
-        </Link>
         <View style={{ flex: 1 }} />
         <Button mode="contained">Add</Button>
       </Card.Actions>

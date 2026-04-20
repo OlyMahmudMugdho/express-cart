@@ -13,7 +13,7 @@ export default function Products() {
     (async () => {
       try {
         const res = await api.getProducts();
-        setProducts(Array.isArray(res) ? res : res.items ?? []);
+        setProducts(Array.isArray(res) ? res : res.products ?? []);
       } catch (err) {
         console.warn(err);
       } finally {

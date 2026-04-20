@@ -10,7 +10,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  const auth = useAuth();
+  const { signIn } = useAuth();
   const router = useRouter();
 
   const validate = () => {
@@ -25,10 +25,15 @@ export default function Login() {
   const onSubmit = async () => {
     if (!validate()) return;
     setLoading(true);
-    const success = await auth.signIn(email, password);
+    console.log('Logging in with:', email);
+    const result = await signIn(email, password);
+    console.log('Login result:', result);
     setLoading(false);
-    if (success) {
-      router.back();
+    
+    if (result.success) {
+      router.push('/profile');
+    } else if (result.needsVerification) {
+      router.push({ pathname: '/profile/verify_otp', params: { userId: result.userId, type: 'verification' } });
     } else {
       alert('Login failed. Check credentials and try again.');
     }
@@ -54,6 +59,9 @@ export default function Login() {
             autoCapitalize="none"
             keyboardType="email-address"
             mode="outlined"
+            outlineColor="#cbd5e1"
+            activeOutlineColor="#0f172a"
+            textColor="#0f172a"
             error={!!errors.email}
           />
           {errors.email && <HelperText type="error">{errors.email}</HelperText>}
@@ -65,23 +73,26 @@ export default function Login() {
             style={styles.input}
             secureTextEntry={!showPassword}
             mode="outlined"
+            outlineColor="#cbd5e1"
+            activeOutlineColor="#0f172a"
+            textColor="#0f172a"
             right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={() => setShowPassword(!showPassword)} />}
             error={!!errors.password}
           />
           {errors.password && <HelperText type="error">{errors.password}</HelperText>}
 
-          <Link href="reset_password" asChild>
+          <Link href="/profile/reset_password" asChild>
             <Button mode="text" style={styles.forgotButton}>Forgot Password?</Button>
           </Link>
 
-          <Button mode="contained" onPress={onSubmit} loading={loading} style={styles.button} contentStyle={styles.buttonContent}>
+          <Button mode="contained" onPress={onSubmit} loading={loading} style={styles.button} contentStyle={styles.buttonContent} textColor="#fff">
             Sign In
           </Button>
         </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don't have an account?</Text>
-          <Link href="register" asChild>
+          <Link href="/profile/register" asChild>
             <Button mode="text">Register</Button>
           </Link>
         </View>

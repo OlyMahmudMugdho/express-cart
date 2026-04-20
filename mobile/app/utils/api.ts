@@ -29,11 +29,35 @@ export function useApi() {
       });
       return res.json();
     },
-    async register(payload: any) {
+    async register(payload: { email: string; password: string; firstName?: string; lastName?: string; phone?: string }) {
       const res = await fetch(`${BASE}/auth/register`, {
         method: 'POST',
         headers: headers(),
         body: JSON.stringify(payload),
+      });
+      return res.json();
+    },
+    async verifyOtp(userId: string, code: string, type: 'verification' | 'password_reset' | 'email_change') {
+      const res = await fetch(`${BASE}/auth/verify-otp`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ userId, code, type }),
+      });
+      return res.json();
+    },
+    async forgotPassword(email: string) {
+      const res = await fetch(`${BASE}/auth/forgot-password`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ email }),
+      });
+      return res.json();
+    },
+    async resetPassword(userId: string, code: string, newPassword: string) {
+      const res = await fetch(`${BASE}/auth/reset-password`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ userId, code, newPassword }),
       });
       return res.json();
     },

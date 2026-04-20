@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { TextInput, Button, Text, HelperText } from 'react-native-paper';
-import { useApi } from '../../utils/api';
-import { useRouter, Link } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
+import { useRouter, Link, useLocalSearchParams } from 'expo-router';
 
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; confirmPassword?: string }>({});
-  const api = useApi();
+  const [errors, setErrors] = useState<{ firstName?: string; email?: string; password?: string; confirmPassword?: string }>({});
+  const { signUp } = useAuth();
   const router = useRouter();
+  const params = useLocalSearchParams<{ userId?: string }>();
 
   const validate = () => {
     const newErrors: typeof errors = {};
-    if (!name) newErrors.name = 'Name is required';
+    if (!firstName) newErrors.firstName = 'First name is required';
     if (!email) newErrors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Invalid email format';
     if (!password) newErrors.password = 'Password is required';
@@ -31,15 +33,15 @@ export default function Register() {
   const onSubmit = async () => {
     if (!validate()) return;
     setLoading(true);
-    try {
-      await api.register({ email, password, name });
-      alert('Registration successful! Please sign in.');
-      router.replace('login');
-    } catch (err) {
-      console.warn(err);
+    const result = await signUp(email, password, firstName, lastName);
+    setLoading(false);
+    
+    if (result.success && result.needsVerification) {
+      router.replace({ pathname: '/profile/verify_otp', params: { userId: result.userId, type: 'verification' } });
+    } else if (result.success) {
+      router.replace('/profile/login');
+    } else {
       alert('Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -56,14 +58,17 @@ export default function Register() {
 
         <View style={styles.form}>
           <TextInput
-            label="Full Name"
-            value={name}
-            onChangeText={setName}
+            label="First Name"
+            value={firstName}
+            onChangeText={setFirstName}
             style={styles.input}
             mode="outlined"
-            error={!!errors.name}
+            outlineColor="#cbd5e1"
+            activeOutlineColor="#0f172a"
+            textColor="#0f172a"
+            error={!!errors.firstName}
           />
-          {errors.name && <HelperText type="error">{errors.name}</HelperText>}
+          {errors.firstName && <HelperText type="error">{errors.firstName}</HelperText>}
 
           <TextInput
             label="Email"
@@ -73,6 +78,9 @@ export default function Register() {
             autoCapitalize="none"
             keyboardType="email-address"
             mode="outlined"
+            outlineColor="#cbd5e1"
+            activeOutlineColor="#0f172a"
+            textColor="#0f172a"
             error={!!errors.email}
           />
           {errors.email && <HelperText type="error">{errors.email}</HelperText>}
@@ -84,6 +92,9 @@ export default function Register() {
             style={styles.input}
             secureTextEntry={!showPassword}
             mode="outlined"
+            outlineColor="#cbd5e1"
+            activeOutlineColor="#0f172a"
+            textColor="#0f172a"
             right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={() => setShowPassword(!showPassword)} />}
             error={!!errors.password}
           />
@@ -96,18 +107,21 @@ export default function Register() {
             style={styles.input}
             secureTextEntry={!showPassword}
             mode="outlined"
+            outlineColor="#cbd5e1"
+            activeOutlineColor="#0f172a"
+            textColor="#0f172a"
             error={!!errors.confirmPassword}
           />
           {errors.confirmPassword && <HelperText type="error">{errors.confirmPassword}</HelperText>}
 
-          <Button mode="contained" onPress={onSubmit} loading={loading} style={styles.button} contentStyle={styles.buttonContent}>
+          <Button mode="contained" onPress={onSubmit} loading={loading} style={styles.button} contentStyle={styles.buttonContent} textColor="#fff">
             Create Account
           </Button>
         </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account?</Text>
-          <Link href="login" asChild>
+          <Link href="/profile/login" asChild>
             <Button mode="text">Sign In</Button>
           </Link>
         </View>

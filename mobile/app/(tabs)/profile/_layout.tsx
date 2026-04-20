@@ -6,6 +6,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="account" />
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
+      <Stack.Screen name="verify_otp" />
       <Stack.Screen name="reset_password" />
     </Stack>
   );

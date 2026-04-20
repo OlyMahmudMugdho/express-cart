@@ -1,13 +1,18 @@
 import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import { useAuth } from '../../context/AuthContext';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 
 export default function Account() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, token } = useAuth();
+  const router = useRouter();
 
-  if (!user) {
+  console.log('Profile - user:', user, 'token:', token);
+
+  const displayName = user?.firstName || user?.email?.split('@')[0] || 'User';
+
+  if (!user || !token) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
@@ -18,12 +23,12 @@ export default function Account() {
           <Text style={styles.subtitle}>Sign in to access your orders, favorites, and account settings.</Text>
         </View>
         <View style={styles.actions}>
-          <Link href="login" asChild>
-            <Button mode="contained" style={styles.primaryButton} contentStyle={styles.buttonContent}>
+          <Link href="/profile/login" asChild>
+            <Button mode="contained" style={styles.primaryButton} contentStyle={styles.buttonContent} textColor="#fff">
               Sign In
             </Button>
           </Link>
-          <Link href="register" asChild>
+          <Link href="/profile/register" asChild>
             <Button mode="outlined" style={styles.secondaryButton} contentStyle={styles.buttonContent}>
               Create Account
             </Button>
@@ -37,9 +42,9 @@ export default function Account() {
     <View style={styles.container}>
       <View style={styles.profileHeader}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user.email?.charAt(0).toUpperCase()}</Text>
+          <Text style={styles.avatarText}>{displayName.charAt(0).toUpperCase()}</Text>
         </View>
-        <Text style={styles.profileTitle}>My Account</Text>
+        <Text style={styles.profileTitle}>Welcome, {displayName}!</Text>
         <Text style={styles.email}>{user.email}</Text>
       </View>
       <View style={styles.menu}>
@@ -48,7 +53,12 @@ export default function Account() {
         <Button mode="text" style={styles.menuItem} contentStyle={styles.menuContent}>Addresses</Button>
         <Button mode="text" style={styles.menuItem} contentStyle={styles.menuContent}>Settings</Button>
       </View>
-      <Button mode="outlined" onPress={signOut} style={styles.logoutButton} textColor="#ef4444">
+      <Button 
+        mode="outlined" 
+        onPress={() => { signOut(); router.push('/profile'); }} 
+        style={styles.logoutButton} 
+        textColor="#ef4444"
+      >
         Sign Out
       </Button>
     </View>

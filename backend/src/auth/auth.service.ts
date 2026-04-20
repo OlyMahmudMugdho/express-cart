@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { MailerService } from '@nestjs-modules/mailer';
 import { User } from './entities/user.entity';
 import { Otp } from './entities/otp.entity';
 import { Role } from './entities/role.enum';
@@ -19,6 +20,7 @@ export class AuthService {
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Otp) private otpRepo: Repository<Otp>,
     private jwtService: JwtService,
+    private mailerService: MailerService,
   ) {}
 
   async register(email: string, password: string) {
@@ -149,8 +151,16 @@ export class AuthService {
     const otp = this.otpRepo.create({ code, type, expiresAt, userId });
     await this.otpRepo.save(otp);
 
-    // TODO: Send email with OTP
-    console.log(`OTP for ${userId}: ${code}`);
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    
+    if (user) {
+        await this.mailerService.sendMail({
+          to: user.email,
+          subject: 'Your ExpressCart OTP',
+          text: `Your OTP code is ${code}. It expires in 10 minutes.`,
+        });
+    }
+    
     return otp;
   }
 

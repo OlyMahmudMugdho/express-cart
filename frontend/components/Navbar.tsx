@@ -34,8 +34,13 @@ export default function Navbar() {
           <Space size="small">
             <Input placeholder="Search" prefix={<SearchOutlined />} style={{ width: '150px' }} />
             <Button icon={<ShoppingCartOutlined />} type="text" />
-          </Space>
-        </>
+            <Link href="/login">
+              <Button type="primary">Login</Button>
+            </Link>
+            <Link href="/register">
+              <Button>Register</Button>
+            </Link>
+          </Space>        </>
       )}
 
       {isMobile && (

@@ -28,6 +28,17 @@ export class CheckoutService {
     });
   }
 
+  async findAllOrders() {
+    return this.orderRepo.find({ order: { createdAt: 'DESC' } });
+  }
+
+  async updateOrderStatus(orderId: string, status: OrderStatus) {
+    const order = await this.orderRepo.findOne({ where: { id: orderId } });
+    if (!order) throw new NotFoundException('Order not found');
+    order.status = status;
+    return this.orderRepo.save(order);
+  }
+
   async initiateCheckout(userId: string, addressId?: string) {
     const cart = await this.cartRepo.findOne({
       where: { userId },

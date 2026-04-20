@@ -1,10 +1,21 @@
-import { Controller, Get, Post, Body, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, UseGuards, Request, Query, Param, ParseUUIDPipe } from '@nestjs/common';
 import { CheckoutService } from './checkout.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/entities/role.enum';
+import { OrderStatus } from './entities/order.entity';
 
 @Controller('checkout')
 export class CheckoutController {
   constructor(private checkoutService: CheckoutService) {}
+
+  @Get('all-orders')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  async findAllOrders() {
+    return this.checkoutService.findAllOrders();
+  }
 
   @Get('orders')
   @UseGuards(JwtAuthGuard)
@@ -16,6 +27,13 @@ export class CheckoutController {
   @UseGuards(JwtAuthGuard)
   initiateCheckout(@Request() req: any, @Query() query: { addressId?: string }) {
     return this.checkoutService.initiateCheckout(req.user.id, query.addressId);
+  }
+
+  @Patch('orders/:id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  async updateStatus(@Param('id', ParseUUIDPipe) id: string, @Body() body: { status: OrderStatus }) {
+    return this.checkoutService.updateOrderStatus(id, body.status);
   }
 
   @Post('place-order')

@@ -68,7 +68,7 @@ export class UsersController {
   }
 
   @Get('admins')
-  @Roles(Role.SUPERADMIN)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
   findAllAdmins() {
     return this.usersService.findAllAdmins();
   }

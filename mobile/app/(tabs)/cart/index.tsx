@@ -2,9 +2,58 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, Image, StyleSheet, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApi } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useFocusEffect } from 'expo-router';
+
+function CartHeader() {
+  return (
+    <View style={headerStyles.container}>
+      <View style={headerStyles.content}>
+        <View style={headerStyles.badge}>
+          <Text style={headerStyles.badgeText}>Shopping</Text>
+        </View>
+        <Text style={headerStyles.title}>Your Cart</Text>
+        <Text style={headerStyles.subtitle}>Review your items before checkout</Text>
+      </View>
+    </View>
+  );
+}
+
+const headerStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#0f172a',
+    paddingTop: 16,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+  },
+  content: {
+    alignItems: 'flex-start',
+  },
+  badge: {
+    backgroundColor: '#22c55e',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginBottom: 12,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#fff',
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#94a3b8',
+  },
+});
 
 export default function Cart() {
   const api = useApi();
@@ -160,7 +209,8 @@ export default function Cart() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+      <CartHeader />
       <FlatList
         data={items}
         keyExtractor={(i) => i.id}
@@ -227,14 +277,14 @@ export default function Cart() {
           </Button>
         </Link>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#f1f5f9',
   },
   listContent: {
     padding: 16,

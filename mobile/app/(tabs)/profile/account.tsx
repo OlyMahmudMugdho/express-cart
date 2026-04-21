@@ -141,12 +141,6 @@ export default function Account() {
           />
           <Divider />
           <MenuItem 
-            icon="heart" 
-            title="Wishlist" 
-            subtitle="Your saved items"
-          />
-          <Divider />
-          <MenuItem 
             icon="location" 
             title="Addresses" 
             subtitle="Manage delivery addresses"
@@ -159,22 +153,10 @@ export default function Account() {
         <Text style={styles.sectionTitle}>Account</Text>
         <View style={styles.menuCard}>
           <MenuItem 
-            icon="settings" 
-            title="Settings" 
-            subtitle="App preferences"
-          />
-          <Divider />
-          <MenuItem 
-            icon="help-circle" 
-            title="Help & Support" 
-            subtitle="Get assistance"
-          />
-          <Divider />
-          <MenuItem 
-            icon="document-text" 
-            title="Terms & Privacy" 
-            subtitle="Legal information"
-            showArrow={false}
+            icon="create" 
+            title="Edit Profile" 
+            subtitle="Update your personal information"
+            onPress={() => router.push('/profile/edit')}
           />
         </View>
       </View>

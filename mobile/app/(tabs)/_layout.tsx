@@ -14,7 +14,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="cart"
-        options={{ title: 'Cart', tabBarIcon: ({ color }) => <Ionicons name="basket" size={24} color={color} /> }}
+        options={{ title: '', headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="basket" size={24} color={color} /> }}
       />
       <Tabs.Screen
         name="profile"

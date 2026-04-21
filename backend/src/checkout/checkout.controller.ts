@@ -39,10 +39,15 @@ export class CheckoutController {
 
   @Post('place-order')
   @UseGuards(JwtAuthGuard)
-  placeOrder(
+  async placeOrder(
     @Request() req: any,
-    @Body() body: { addressId?: string; notes?: string; newAddress?: any },
+    @Body() body: { addressId?: string; notes?: string; newAddress?: any; paymentMethod?: 'cod' | 'stripe' },
   ) {
-    return this.checkoutService.createOrder(req.user.id, body.addressId, body.notes, body.newAddress);
+    try {
+      return await this.checkoutService.createOrder(req.user.id, body.addressId, body.notes, body.newAddress, body.paymentMethod || 'cod');
+    } catch (error) {
+      console.error('Place order error:', error);
+      throw error;
+    }
   }
 }

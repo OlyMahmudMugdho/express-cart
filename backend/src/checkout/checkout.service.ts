@@ -8,6 +8,9 @@ import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart/entities/cart-item.entity';
 import { Product } from '../products/entities/product.entity';
 import { Address } from '../users/entities/address.entity';
+import { StripeService } from '../stripe/stripe.service';
+
+export type PaymentMethod = 'cod' | 'stripe';
 
 @Injectable()
 export class CheckoutService {
@@ -19,6 +22,7 @@ export class CheckoutService {
     @InjectRepository(CartItem) private cartItemRepo: Repository<CartItem>,
     @InjectRepository(Product) private productRepo: Repository<Product>,
     @InjectRepository(Address) private addressRepo: Repository<Address>,
+    private stripeService: StripeService,
   ) {}
 
   async getOrders(userId: string) {
@@ -72,11 +76,19 @@ export class CheckoutService {
     };
   }
 
-  async createOrder(userId: string, addressId?: string, notes?: string, newAddress?: any) {
+  async createOrder(userId: string, addressId?: string, notes?: string, newAddress?: any, paymentMethod: PaymentMethod = 'cod') {
+    console.log('=== CREATE ORDER ===');
+    console.log('paymentMethod:', paymentMethod);
+    console.log('addressId:', addressId);
+    console.log('newAddress:', newAddress);
+    
     const cart = await this.cartRepo.findOne({
       where: { userId },
       relations: ['items', 'items.product'],
     });
+    console.log('Cart found:', !!cart);
+    console.log('Cart items:', cart?.items?.length);
+    
     if (!cart || cart.items.length === 0) {
       throw new BadRequestException('Cart is empty');
     }
@@ -85,6 +97,7 @@ export class CheckoutService {
     let finalAddressId = addressId;
 
     if (newAddress && typeof newAddress === 'object') {
+      console.log('Saving new address...');
       const savedAddress = this.addressRepo.create({
         ...newAddress,
         userId,
@@ -106,6 +119,27 @@ export class CheckoutService {
     const tax = Number((subtotal * 0.08).toFixed(2));
     const total = Number((subtotal + shippingCost + tax).toFixed(2));
 
+    let stripePaymentIntentId = 'cod';
+    let paymentStatus = PaymentStatus.PENDING;
+    let checkoutSessionUrl = null;
+    let checkoutSessionId = null;
+
+    if (paymentMethod === 'stripe') {
+      try {
+        const orderNum = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        const session = await this.stripeService.createCheckoutSession(total, 'usd', orderNum);
+        checkoutSessionUrl = session.url;
+        checkoutSessionId = session.id;
+        stripePaymentIntentId = session.id;  // Use session ID for now
+        paymentStatus = PaymentStatus.PENDING;
+        console.log('Stripe Checkout Session URL:', checkoutSessionUrl);
+        console.log('Stripe Checkout Session ID:', checkoutSessionId);
+      } catch (stripeError: any) {
+        console.error('Stripe error:', stripeError);
+        throw new BadRequestException('Failed to create checkout session: ' + stripeError.message);
+      }
+    }
+
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     const order = this.orderRepo.create({
       orderNumber,
@@ -117,7 +151,7 @@ export class CheckoutService {
       status: OrderStatus.PENDING,
       shippingAddressId: finalAddressId || undefined,
       shippingAddress,
-      notes,
+      notes: paymentMethod === 'cod' ? 'Cash on Delivery' : notes,
     });
     await this.orderRepo.save(order);
 
@@ -140,8 +174,8 @@ export class CheckoutService {
 
     const payment = this.paymentRepo.create({
       orderId: order.id,
-      stripePaymentIntentId: 'cod',
-      status: PaymentStatus.PENDING,
+      stripePaymentIntentId,
+      status: paymentStatus,
       amount: total,
       currency: 'usd',
     });
@@ -151,11 +185,19 @@ export class CheckoutService {
     const cartItems = await this.cartItemRepo.find({ where: { cartId: cart.id } });
     await this.cartItemRepo.remove(cartItems);
     
-    // Explicitly reset and save the cart
     cart.total = 0;
-    cart.items = []; // Ensure items is empty
+    cart.items = [];
     await this.cartRepo.save(cart);
 
-    return { order, payment };
+    return { 
+      order: { 
+        id: order.id, 
+        orderNumber: order.orderNumber, 
+        total: order.total 
+      }, 
+      payment, 
+      checkoutSessionUrl,
+      checkoutSessionId,
+    };
   }
 }

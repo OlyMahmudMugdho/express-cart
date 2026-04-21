@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from './config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -8,10 +10,16 @@ import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
 import { CartModule } from './cart/cart.module';
 import { CheckoutModule } from './checkout/checkout.module';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
     ConfigModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', 'frontend', '.next'),
+      serveRoot: '/',
+      exclude: ['/api*'],
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DATABASE_HOST || 'localhost',
@@ -27,6 +35,7 @@ import { CheckoutModule } from './checkout/checkout.module';
     ProductsModule,
     CartModule,
     CheckoutModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

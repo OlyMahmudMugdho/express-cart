@@ -28,7 +28,7 @@ export class Payment {
   @Column()
   orderId: string;
 
-  @Column()
+  @Column({ nullable: true })
   stripePaymentIntentId: string;
 
   @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PENDING })

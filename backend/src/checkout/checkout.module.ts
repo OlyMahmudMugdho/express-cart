@@ -9,9 +9,14 @@ import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart/entities/cart-item.entity';
 import { Product } from '../products/entities/product.entity';
 import { Address } from '../users/entities/address.entity';
+import { StripeModule } from '../stripe/stripe.module';
+import { StripeService } from '../stripe/stripe.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, OrderItem, Payment, Cart, CartItem, Product, Address])],
+  imports: [
+    TypeOrmModule.forFeature([Order, OrderItem, Payment, Cart, CartItem, Product, Address]),
+    StripeModule,
+  ],
   controllers: [CheckoutController],
   providers: [CheckoutService],
   exports: [CheckoutService],

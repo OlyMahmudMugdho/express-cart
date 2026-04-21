@@ -41,8 +41,8 @@ export class CheckoutController {
   @UseGuards(JwtAuthGuard)
   placeOrder(
     @Request() req: any,
-    @Body() body: { addressId?: string; notes?: string },
+    @Body() body: { addressId?: string; notes?: string; newAddress?: any },
   ) {
-    return this.checkoutService.createOrder(req.user.id, body.addressId, body.notes);
+    return this.checkoutService.createOrder(req.user.id, body.addressId, body.notes, body.newAddress);
   }
 }

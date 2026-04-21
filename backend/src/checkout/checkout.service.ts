@@ -72,7 +72,7 @@ export class CheckoutService {
     };
   }
 
-  async createOrder(userId: string, addressId?: string, notes?: string) {
+  async createOrder(userId: string, addressId?: string, notes?: string, newAddress?: any) {
     const cart = await this.cartRepo.findOne({
       where: { userId },
       relations: ['items', 'items.product'],
@@ -82,7 +82,19 @@ export class CheckoutService {
     }
 
     let shippingAddress = '';
-    if (addressId) {
+    let finalAddressId = addressId;
+
+    if (newAddress && typeof newAddress === 'object') {
+      const savedAddress = this.addressRepo.create({
+        ...newAddress,
+        userId,
+        isDefault: false,
+      });
+      const savedResult = await this.addressRepo.save(savedAddress);
+      const saved = Array.isArray(savedResult) ? savedResult[0] : savedResult;
+      finalAddressId = saved.id;
+      shippingAddress = `${saved.street}, ${saved.city}, ${saved.state} ${saved.postalCode}, ${saved.country}`;
+    } else if (addressId) {
       const address = await this.addressRepo.findOne({ where: { id: addressId, userId } });
       if (address) {
         shippingAddress = `${address.street}, ${address.city}, ${address.state} ${address.postalCode}, ${address.country}`;
@@ -103,7 +115,7 @@ export class CheckoutService {
       tax,
       total,
       status: OrderStatus.PENDING,
-      shippingAddressId: addressId || undefined,
+      shippingAddressId: finalAddressId || undefined,
       shippingAddress,
       notes,
     });

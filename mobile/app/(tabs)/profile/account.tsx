@@ -150,6 +150,7 @@ export default function Account() {
             icon="location" 
             title="Addresses" 
             subtitle="Manage delivery addresses"
+            onPress={() => router.push('/profile/addresses')}
           />
         </View>
       </View>

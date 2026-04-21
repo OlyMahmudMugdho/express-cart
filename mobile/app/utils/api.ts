@@ -131,11 +131,11 @@ export function useApi() {
       }
       return res.json();
     },
-    async placeOrder(addressId?: string, notes?: string) {
+    async placeOrder(addressId?: string, notes?: string, newAddress?: any) {
       const res = await fetch(`${BASE}/checkout/place-order`, {
         method: 'POST',
         headers: { ...getHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ addressId, notes }),
+        body: JSON.stringify({ addressId, notes, newAddress }),
       });
       if (!res.ok) {
         const error = await res.json();
@@ -162,6 +162,39 @@ export function useApi() {
         console.log('getOrders error:', err);
         return [];
       }
+    },
+    async getAddresses() {
+      const h = getHeaders();
+      if (!h.Authorization) return [];
+      try {
+        const res = await fetch(`${BASE}/users/addresses`, { headers: h });
+        if (!res.ok) return [];
+        return res.json();
+      } catch {
+        return [];
+      }
+    },
+    async addAddress(payload: any) {
+      const res = await fetch(`${BASE}/users/addresses`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to add address');
+      }
+      return res.json();
+    },
+    async deleteAddress(id: string) {
+      const res = await fetch(`${BASE}/users/addresses/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to delete address');
+      }
+      return res.json();
     },
   };
 }

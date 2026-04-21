@@ -2,8 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, Image, StyleSheet, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
-import { useApi } from '../utils/api';
-import { useAuth } from '../context/AuthContext';
+import { useApi } from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
 import { Link, useFocusEffect } from 'expo-router';
 
 export default function Cart() {
@@ -221,7 +221,7 @@ export default function Cart() {
           <Text style={styles.totalLabel}>Total</Text>
           <Text style={styles.totalValue}>${subtotal.toFixed(2)}</Text>
         </View>
-        <Link href="/checkout/checkout" asChild>
+        <Link href="/cart/checkout" asChild>
           <Button mode="contained" style={styles.checkoutButton} textColor="#fff">
             Proceed to Checkout
           </Button>

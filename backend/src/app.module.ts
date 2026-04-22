@@ -11,6 +11,8 @@ import { ProductsModule } from './products/products.module';
 import { CartModule } from './cart/cart.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { StripeModule } from './stripe/stripe.module';
+import { MediaModule } from './media/media.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { StripeModule } from './stripe/stripe.module';
     CartModule,
     CheckoutModule,
     StripeModule,
+    MediaModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

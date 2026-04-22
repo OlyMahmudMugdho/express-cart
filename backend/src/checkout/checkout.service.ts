@@ -34,7 +34,16 @@ export class CheckoutService {
   }
 
   async findAllOrders() {
-    return this.orderRepo.find({ order: { createdAt: 'DESC' } });
+    return this.orderRepo.find({ order: { createdAt: 'DESC' }, relations: ['user'] });
+  }
+
+  async findOneOrder(id: string) {
+    const order = await this.orderRepo.findOne({ 
+      where: { id },
+      relations: ['items', 'user']
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    return order;
   }
 
   async updateOrderStatus(orderId: string, status: OrderStatus) {

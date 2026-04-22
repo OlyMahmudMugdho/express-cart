@@ -1,6 +1,6 @@
 import { useAuth } from '../context/AuthContext';
 
-const BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+const BASE = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.202:3000/api';
 
 export function useApi() {
   const { token, isLoading } = useAuth();
@@ -131,15 +131,24 @@ export function useApi() {
       }
       return res.json();
     },
-    async placeOrder(addressId?: string, notes?: string, newAddress?: any) {
+    async placeOrder(addressId?: string, notes?: string, newAddress?: any, paymentMethod: 'cod' | 'stripe' = 'cod') {
       const res = await fetch(`${BASE}/checkout/place-order`, {
         method: 'POST',
         headers: { ...getHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ addressId, notes, newAddress }),
+        body: JSON.stringify({ addressId, notes, newAddress, paymentMethod }),
       });
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || 'Failed to place order');
+      }
+      return res.json();
+    },
+    async getOrderStatus(orderNumber: string) {
+      const res = await fetch(`${BASE}/checkout/orders/${orderNumber}/status`, {
+        headers: getHeaders(),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to fetch order status');
       }
       return res.json();
     },

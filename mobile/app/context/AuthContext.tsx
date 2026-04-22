@@ -43,7 +43,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [pendingAuth, setPendingAuth] = useState<PendingAuth>({ userId: null, email: null, type: null });
   const [loading, setLoading] = useState(true);
 
-  const BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const BASE = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.202:3000/api';
 
   useEffect(() => {
     loadStoredAuth();

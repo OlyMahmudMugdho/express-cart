@@ -4,6 +4,7 @@ import { Text, Button, Card, Divider, Snackbar, RadioButton, ActivityIndicator, 
 import { useRouter } from 'expo-router';
 import { useApi } from '../../utils/api';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
 
 interface NewAddress {
   label: string;
@@ -45,6 +46,8 @@ export default function Checkout() {
   const [fetchingAddresses, setFetchingAddresses] = useState(true);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'stripe'>('cod');
+  const [waitingForPayment, setWaitingForPayment] = useState(false);
   const [showNewAddress, setShowNewAddress] = useState(false);
   const [newAddress, setNewAddress] = useState<NewAddress>({
     label: '',
@@ -107,12 +110,30 @@ export default function Checkout() {
         phone: newAddress.phone,
       } : undefined;
 
-      const res = await api.placeOrder(showNewAddress ? undefined : selectedAddressId || undefined, undefined, addressPayload);
+      const res = await api.placeOrder(
+        showNewAddress ? undefined : selectedAddressId || undefined, 
+        undefined, 
+        addressPayload,
+        paymentMethod
+      );
+      
+      if (paymentMethod === 'stripe' && res.checkoutSessionUrl) {
+        setLoading(false);
+        const orderNumber = res.order?.orderNumber;
+        
+        await WebBrowser.openBrowserAsync(res.checkoutSessionUrl);
+        
+        // After browser closes, start polling
+        setWaitingForPayment(true);
+        pollOrderStatus(orderNumber);
+        return;
+      }
+
       if (res.order) {
         const orderNumber = res.order?.orderNumber || 'ORD-' + Date.now();
         router.push({
           pathname: '/cart/success',
-          params: { orderNumber },
+          params: { orderNumber, paymentMethod: 'cod' },
         });
       } else {
         setSnackbarMessage('Failed to place order.');
@@ -131,6 +152,60 @@ export default function Checkout() {
   const updateNewAddress = (field: keyof NewAddress, value: string) => {
     setNewAddress(prev => ({ ...prev, [field]: value }));
   };
+
+  const pollOrderStatus = async (orderNumber: string) => {
+    let attempts = 0;
+    const maxAttempts = 60; // 5 minutes with 5s interval
+    
+    const checkStatus = async () => {
+      try {
+        const res = await api.getOrderStatus(orderNumber);
+        if (res.status === 'processing') {
+          setWaitingForPayment(false);
+          router.push({
+            pathname: '/cart/success',
+            params: { orderNumber, paymentMethod: 'stripe' },
+          });
+          return true;
+        }
+      } catch (err) {
+        console.warn('Poll error:', err);
+      }
+      return false;
+    };
+
+    const interval = setInterval(async () => {
+      attempts++;
+      const finished = await checkStatus();
+      if (finished || attempts >= maxAttempts) {
+        clearInterval(interval);
+        if (!finished) {
+          setWaitingForPayment(false);
+          setSnackbarMessage('Payment confirmation timed out. Please check your orders.');
+          setSnackbarColor('#f59e0b');
+          setSnackbarVisible(true);
+        }
+      }
+    }, 5000);
+  };
+
+  if (waitingForPayment) {
+    return (
+      <View style={styles.waitingContainer}>
+        <ActivityIndicator size="large" color="#0f172a" />
+        <Text style={styles.waitingTitle}>Waiting for Payment</Text>
+        <Text style={styles.waitingSubtitle}>Please complete the payment in the browser window.</Text>
+        <Button 
+          mode="outlined" 
+          onPress={() => setWaitingForPayment(false)}
+          textColor="#0f172a"
+          style={{ marginTop: 24, borderColor: '#0f172a' }}
+        >
+          Cancel Waiting
+        </Button>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f8fafc' }}>
@@ -279,18 +354,49 @@ export default function Checkout() {
 
         <Card style={[styles.card, { marginTop: 16 }]}>
           <Card.Content>
-            <SectionTitle title="Order Summary" icon="receipt-outline" />
+            <SectionTitle title="Payment Method" icon="card-outline" />
             
-            <View style={styles.paymentMethodContainer}>
-              <Ionicons name="cash-outline" size={20} color="#92400e" />
-              <Text style={styles.paymentMethodLabel}>Payment Method</Text>
-              <Text style={styles.paymentMethodValue}>Cash on Delivery</Text>
-            </View>
+            <RadioButton.Group onValueChange={value => setPaymentMethod(value as any)} value={paymentMethod}>
+              <TouchableOpacity 
+                onPress={() => setPaymentMethod('cod')}
+                style={[
+                  styles.paymentOption,
+                  paymentMethod === 'cod' && styles.paymentOptionSelected
+                ]}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <RadioButton value="cod" color="#0f172a" />
+                  <Ionicons name="cash-outline" size={24} color={paymentMethod === 'cod' ? "#0f172a" : "#64748b"} style={{ marginLeft: 8 }} />
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={styles.paymentOptionTitle}>Cash on Delivery</Text>
+                    <Text style={styles.paymentOptionSubtitle}>Pay when you receive your order</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => setPaymentMethod('stripe')}
+                style={[
+                  styles.paymentOption,
+                  paymentMethod === 'stripe' && styles.paymentOptionSelected
+                ]}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <RadioButton value="stripe" color="#0f172a" />
+                  <Ionicons name="card-outline" size={24} color={paymentMethod === 'stripe' ? "#0f172a" : "#64748b"} style={{ marginLeft: 8 }} />
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={styles.paymentOptionTitle}>Credit / Debit Card</Text>
+                    <Text style={styles.paymentOptionSubtitle}>Secure payment via Stripe</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </RadioButton.Group>
             
             <Divider style={styles.divider} />
             
             <Text style={styles.secureNote}>
-              <Ionicons name="lock-closed-outline" size={14} color="#64748b" /> Your order will be paid when delivered
+              <Ionicons name="lock-closed-outline" size={14} color="#64748b" /> 
+              {paymentMethod === 'cod' ? ' Your order will be paid when delivered' : ' Your payment is processed securely'}
             </Text>
           </Card.Content>
         </Card>
@@ -444,6 +550,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#0f172a',
   },
+  paymentOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    marginBottom: 10,
+    backgroundColor: '#fff',
+  },
+  paymentOptionSelected: {
+    borderColor: '#0f172a',
+    backgroundColor: '#f8fafc',
+  },
+  paymentOptionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0f172a',
+  },
+  paymentOptionSubtitle: {
+    fontSize: 12,
+    color: '#64748b',
+  },
   paymentMethodContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -486,5 +615,25 @@ const styles = StyleSheet.create({
   snackbar: {
     backgroundColor: '#0f172a',
     bottom: 20,
+  },
+  waitingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: '#fff',
+  },
+  waitingTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginTop: 24,
+    marginBottom: 8,
+  },
+  waitingSubtitle: {
+    fontSize: 16,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });

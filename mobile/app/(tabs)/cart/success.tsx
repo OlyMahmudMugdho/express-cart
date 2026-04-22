@@ -9,6 +9,7 @@ export default function CheckoutSuccess() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const orderNumber = params.orderNumber as string || 'N/A';
+  const paymentMethod = (params.paymentMethod as string) || 'cod';
   const [scaleAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -40,15 +41,17 @@ export default function CheckoutSuccess() {
         </Text>
 
         <View style={styles.paymentInfo}>
-          <Ionicons name="cash-outline" size={20} color="#92400e" />
-          <Text style={styles.paymentText}>Cash on Delivery</Text>
+          <Ionicons name={paymentMethod === 'stripe' ? 'card-outline' : 'cash-outline'} size={20} color="#92400e" />
+          <Text style={styles.paymentText}>
+            {paymentMethod === 'stripe' ? 'Paid via Card' : 'Cash on Delivery'}
+          </Text>
         </View>
       </View>
 
       <View style={styles.buttonContainer}>
         <Button
           mode="contained"
-          onPress={() => router.replace('/cart')}
+          onPress={() => router.replace('/(tabs)/shop')}
           style={styles.primaryButton}
           buttonColor="#0f172a"
           textColor="#fff"

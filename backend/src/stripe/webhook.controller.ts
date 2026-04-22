@@ -1,10 +1,19 @@
-import { Controller, Post, Body, Headers, RawBodyRequest, Req } from '@nestjs/common';
-import { Request } from 'express';
+import { Controller, Post, Body, Headers, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { StripeService } from './stripe.service';
+import { Order, OrderStatus } from '../checkout/entities/order.entity';
+import { Payment, PaymentStatus } from '../checkout/entities/payment.entity';
 
 @Controller('webhook')
 export class WebhookController {
-  constructor(private stripeService: StripeService) {}
+  private readonly logger = new Logger(WebhookController.name);
+
+  constructor(
+    private stripeService: StripeService,
+    @InjectRepository(Order) private orderRepo: Repository<Order>,
+    @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
+  ) {}
 
   @Post()
   async handleWebhook(
@@ -13,24 +22,45 @@ export class WebhookController {
   ) {
     try {
       const event = body;
+      this.logger.log(`Received webhook event: ${event.type}`);
       
       switch (event.type) {
+        case 'checkout.session.completed': {
+          const session = event.data.object;
+          const orderNumber = session.client_reference_id;
+          this.logger.log(`Checkout session completed for order: ${orderNumber}`);
+          
+          if (orderNumber) {
+            const order = await this.orderRepo.findOne({ where: { orderNumber } });
+            if (order) {
+              order.status = OrderStatus.PROCESSING;
+              await this.orderRepo.save(order);
+              this.logger.log(`Order ${orderNumber} status updated to PROCESSING`);
+
+              const payment = await this.paymentRepo.findOne({ where: { orderId: order.id } });
+              if (payment) {
+                payment.status = PaymentStatus.SUCCEEDED;
+                payment.stripePaymentIntentId = session.payment_intent;
+                await this.paymentRepo.save(payment);
+                this.logger.log(`Payment for order ${orderNumber} updated to SUCCEEDED`);
+              }
+            }
+          }
+          break;
+        }
         case 'payment_intent.succeeded':
-          console.log('Payment succeeded:', event.data.object.id);
+          this.logger.log('Payment intent succeeded:', event.data.object.id);
           break;
         case 'payment_intent.payment_failed':
-          console.log('Payment failed:', event.data.object.id);
-          break;
-        case 'charge.refunded':
-          console.log('Refund processed:', event.data.object.id);
+          this.logger.log('Payment intent failed:', event.data.object.id);
           break;
         default:
-          console.log(`Unhandled event type: ${event.type}`);
+          this.logger.log(`Unhandled event type: ${event.type}`);
       }
 
       return { received: true };
     } catch (error) {
-      console.error('Webhook error:', error);
+      this.logger.error('Webhook error:', error);
       return { error: 'Webhook handler failed' };
     }
   }

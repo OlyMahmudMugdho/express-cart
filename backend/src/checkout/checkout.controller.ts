@@ -30,6 +30,12 @@ export class CheckoutController {
     return this.checkoutService.initiateCheckout(req.user.id, query.addressId);
   }
 
+  @Get('orders/:orderNumber/status')
+  @UseGuards(JwtAuthGuard)
+  async getStatus(@Param('orderNumber') orderNumber: string) {
+    return this.checkoutService.getOrderStatus(orderNumber);
+  }
+
   @Patch('orders/:id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.SUPERADMIN)

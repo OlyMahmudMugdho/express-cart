@@ -44,6 +44,12 @@ export class CheckoutService {
     return this.orderRepo.save(order);
   }
 
+  async getOrderStatus(orderNumber: string) {
+    const order = await this.orderRepo.findOne({ where: { orderNumber } });
+    if (!order) throw new NotFoundException('Order not found');
+    return { status: order.status };
+  }
+
   async initiateCheckout(userId: string, addressId?: string) {
     const cart = await this.cartRepo.findOne({
       where: { userId },
@@ -119,6 +125,7 @@ export class CheckoutService {
     const tax = Number((subtotal * 0.08).toFixed(2));
     const total = Number((subtotal + shippingCost + tax).toFixed(2));
 
+    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     let stripePaymentIntentId = 'cod';
     let paymentStatus = PaymentStatus.PENDING;
     let checkoutSessionUrl = null;
@@ -126,8 +133,7 @@ export class CheckoutService {
 
     if (paymentMethod === 'stripe') {
       try {
-        const orderNum = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-        const session = await this.stripeService.createCheckoutSession(total, 'usd', orderNum);
+        const session = await this.stripeService.createCheckoutSession(total, 'usd', orderNumber);
         checkoutSessionUrl = session.url;
         checkoutSessionId = session.id;
         stripePaymentIntentId = session.id;  // Use session ID for now
@@ -140,7 +146,6 @@ export class CheckoutService {
       }
     }
 
-    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     const order = this.orderRepo.create({
       orderNumber,
       userId,

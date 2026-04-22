@@ -1,20 +1,29 @@
 import { plainToInstance, Type } from 'class-transformer';
-import { IsString, IsNumber, ValidateNested, validateSync } from 'class-validator';
+import { IsString, IsNumber, ValidateNested, validateSync, IsOptional } from 'class-validator';
 
 class Environment {
   @IsString()
+  @IsOptional()
+  DATABASE_URL: string;
+
+  @IsString()
+  @IsOptional()
   DATABASE_HOST: string;
 
   @IsNumber()
+  @IsOptional()
   DATABASE_PORT: number;
 
   @IsString()
+  @IsOptional()
   DATABASE_USER: string;
 
   @IsString()
+  @IsOptional()
   DATABASE_PASSWORD: string;
 
   @IsString()
+  @IsOptional()
   DATABASE_NAME: string;
 
   @IsString()

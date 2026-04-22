@@ -81,6 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   const breadcrumbItems = pathname.split('/').filter(i => i).map((item, index, array) => ({
+    key: index,
     title: item.charAt(0).toUpperCase() + item.slice(1),
     href: '/' + array.slice(0, index + 1).join('/'),
   }));
@@ -182,7 +183,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {SidebarContent}
       </Drawer>
 
-      <Layout className="main-layout" style={{ transition: 'all 0.2s' }}>
+      <Layout 
+        className="main-layout" 
+        style={{ 
+          marginLeft: typeof window !== 'undefined' && window.innerWidth > 992 ? (collapsed ? 80 : 260) : 0,
+          transition: 'all 0.2s'
+        }}
+      >
         <Header style={{ 
           padding: '0 24px', 
           background: colorBgContainer, 
@@ -228,33 +235,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </Content>
       </Layout>
-
-      <style jsx global>{`
-        .main-layout {
-          margin-left: ${collapsed ? '80px' : '260px'};
-        }
-        
-        @media (max-width: 992px) {
-          .desktop-sider {
-            display: none !important;
-          }
-          .desktop-trigger {
-            display: none !important;
-          }
-          .mobile-trigger {
-            display: block !important;
-          }
-          .main-layout {
-            margin-left: 0 !important;
-          }
-        }
-        
-        @media (min-width: 993px) {
-          .mobile-trigger {
-            display: none !important;
-          }
-        }
-      `}</style>
     </Layout>
   );
 }

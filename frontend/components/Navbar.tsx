@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Input, Button, Space, Drawer, List, Typography, Divider, Badge, message } from 'antd';
+import { Layout, Menu, Input, Button, Space, Drawer, List, Typography, Divider, Badge, message, Empty } from 'antd';
 import { ShoppingCartOutlined, MenuOutlined, DeleteOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -23,12 +23,21 @@ export default function Navbar() {
     const token = localStorage.getItem('token');
     setIsAuthed(!!token);
     
-    if (token) {
+    if (token && typeof window !== 'undefined') {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+          window.atob(base64)
+            .split('')
+            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+        const payload = JSON.parse(jsonPayload);
         const role = payload.role?.toLowerCase();
         setIsAdmin(role === 'admin' || role === 'superadmin');
       } catch (e) {
+        console.error('Error decoding token:', e);
         setIsAdmin(false);
       }
       fetchCart();
@@ -215,5 +224,3 @@ export default function Navbar() {
     </Header>
   );
 }
-
-import { Empty } from 'antd';

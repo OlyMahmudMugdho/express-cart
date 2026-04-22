@@ -23,6 +23,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
+      url: process.env.DATABASE_URL,
       host: process.env.DATABASE_HOST || 'localhost',
       port: parseInt(process.env.DATABASE_PORT || '5432', 10),
       username: process.env.DATABASE_USER || 'expresscart',
@@ -30,6 +31,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
       database: process.env.DATABASE_NAME || 'expresscart',
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== 'production',
+      ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
     }),
     AuthModule,
     UsersModule,

@@ -98,28 +98,6 @@ export default function Invoice({ order }: InvoiceProps) {
         <Text type="secondary">Thank you for shopping with ExpressCart!</Text><br />
         <Text type="secondary" style={{ fontSize: '12px' }}>If you have any questions, please contact support@expresscart.com</Text>
       </div>
-
-      <style jsx global>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .invoice-container, .invoice-container * {
-            visibility: visible;
-          }
-          .invoice-container {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 20px;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

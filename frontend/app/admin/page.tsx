@@ -331,8 +331,8 @@ export default function AdminPage() {
         <>
           {/* KPI CARDS */}
           <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
-            {topLevelStats.map((stat, index) => (
-              <Col xs={24} sm={12} xl={6} key={index}>
+            {topLevelStats.map((stat) => (
+              <Col xs={24} sm={12} xl={6} key={stat.title}>
                 <Card bordered={false} hoverable style={{ borderRadius: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Statistic

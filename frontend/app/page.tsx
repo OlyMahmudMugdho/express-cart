@@ -101,13 +101,6 @@ export default function HomePage() {
           marginBottom: '48px',
           marginTop: '24px'
         }}>
-          <style jsx>{`
-            @media (min-width: 768px) {
-              .hero-inner {
-                flex-direction: row !important;
-              }
-            }
-          `}</style>
           <div className="hero-inner flex flex-col md:flex-row items-center w-full">
             <div style={{ flex: 1 }} className="text-center md:text-left md:pr-12">
                <Title level={1} style={{ fontSize: '48px', color: '#1e293b', fontWeight: 800, lineHeight: 1.2 }}>Elevate Your <br/><span style={{ color: '#1677ff' }}>Shopping Experience</span></Title>

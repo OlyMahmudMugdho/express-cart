@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../admin-layout';
-import { Table, Button, message, Popconfirm, Modal, Form, Input, Typography, Space } from 'antd';
+import { Table, Button, message, Popconfirm, Modal, Form, Input, Typography, Space, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { BASE_URI } from '@/constants/api';
 
@@ -135,5 +135,3 @@ export default function AdminCategoriesPage() {
     </AdminLayout>
   );
 }
-
-import { Tag } from 'antd';

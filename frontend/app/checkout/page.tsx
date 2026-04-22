@@ -2,10 +2,9 @@
 import { BASE_URI } from '@/constants/api';
 
 import React, { useEffect, useState } from 'react';
-import { Layout, Button, Typography, message, Spin, Card, Divider, Radio, Space, Form, Input, Select } from 'antd';
+import { Layout, Button, Typography, message, Spin, Card, Divider, Radio, Space, Form, Input } from 'antd';
 import Navbar from '@/components/Navbar';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -27,6 +26,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'stripe'>('cod');
   const [form] = Form.useForm();
   const router = useRouter();
 
@@ -45,7 +45,7 @@ export default function CheckoutPage() {
         setCheckoutData(cData);
         setAddresses(Array.isArray(aData) ? aData : []);
         if (Array.isArray(aData) && aData.length > 0) {
-          const def = aData.find(a => a.isDefault) || aData[0];
+          const def = aData.find((a: any) => a.isDefault) || aData[0];
           setSelectedAddressId(def.id);
         }
       } catch (e) {
@@ -58,6 +58,8 @@ export default function CheckoutPage() {
   }, []);
 
   const placeOrder = async (values?: AddressForm) => {
+    console.log('placeOrder called, paymentMethod:', paymentMethod, 'selectedAddressId:', selectedAddressId);
+    
     if (!selectedAddressId && !showNewAddressForm) {
       message.warning('Please select a shipping address');
       return;
@@ -65,7 +67,11 @@ export default function CheckoutPage() {
 
     setPlacingOrder(true);
     try {
-      const requestBody: any = { notes: 'Cash on Delivery' };
+      const requestBody: any = { 
+        paymentMethod,
+        notes: paymentMethod === 'cod' ? 'Cash on Delivery' : 'Card Payment',
+      };
+      console.log('Request body:', requestBody);
       
       if (showNewAddressForm && values) {
         requestBody.newAddress = {
@@ -89,17 +95,51 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify(requestBody),
       });
-      if (res.ok) {
-        message.success('Order placed successfully!');
-        router.push('/profile');
-      } else {
-        message.error('Failed to place order');
+      
+      console.log('Response status:', res.status);
+      
+      let data: any = {};
+      try {
+        data = await res.json();
+        console.log('Response data:', JSON.stringify(data, null, 2));
+        if (data.checkoutSessionUrl) {
+          console.log('=== STRIPE CHECKOUT URL ===');
+          console.log(data.checkoutSessionUrl);
+          console.log('==============================');
+        }
+      } catch (err) {
+        console.log('Failed to parse response');
       }
-    } catch (e) {
-      message.error('An error occurred');
-    } finally {
-      setPlacingOrder(false);
+      
+      if (res.ok || res.status === 201) {
+        console.log('Current URL:', window.location.href);
+        console.log('Redirecting to /profile');
+        
+        if (data.checkoutSessionUrl) {
+          console.log('=== STRIPE CHECKOUT URL ===');
+          console.log(data.checkoutSessionUrl);
+          console.log('==============================');
+          message.success('Redirecting to payment...');
+          setTimeout(() => {
+            window.location.href = data.checkoutSessionUrl;
+          }, 1500);
+        } else {
+          message.success('Order placed successfully!');
+          setTimeout(() => {
+            console.log('Now pushing to profile...');
+            router.push('/profile');
+          }, 1500);
+        }
+      } else {
+        message.error(data?.message || 'Failed to place order');
+        setPlacingOrder(false);
+        return;
+      }
+    } catch (e: any) {
+      console.error('Order error:', e);
+      message.error(e.message || 'An error occurred');
     }
+    setPlacingOrder(false);
   };
 
   const handleSubmit = async (values: AddressForm) => {
@@ -182,6 +222,33 @@ export default function CheckoutPage() {
           )}
         </Card>
 
+        <Card title="Payment Method" style={{ marginBottom: '24px' }}>
+          <Radio.Group 
+            onChange={e => setPaymentMethod(e.target.value)} 
+            value={paymentMethod}
+            style={{ width: '100%' }}
+          >
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Radio value="cod" style={{ width: '100%', padding: '16px', border: '1px solid #f0f0f0', borderRadius: '8px' }}>
+                <div style={{ marginLeft: '8px' }}>
+                  <Text strong>Cash on Delivery</Text>
+                  <div style={{ fontSize: '12px', color: '#64748b' }}>
+                    Pay when you receive your order
+                  </div>
+                </div>
+              </Radio>
+              <Radio value="stripe" style={{ width: '100%', padding: '16px', border: '1px solid #f0f0f0', borderRadius: '8px' }}>
+                <div style={{ marginLeft: '8px' }}>
+                  <Text strong>Card Payment</Text>
+                  <div style={{ fontSize: '12px', color: '#64748b' }}>
+                    Pay securely with your debit/credit card
+                  </div>
+                </div>
+              </Radio>
+            </Space>
+          </Radio.Group>
+        </Card>
+
         <Card title="Order Summary">
             {checkoutData.items.map((item: any) => (
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -191,8 +258,8 @@ export default function CheckoutPage() {
             ))}
             <Divider />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <Text>Payment Method</Text>
-                <Text strong>Cash on Delivery</Text>
+                <Text>Payment</Text>
+                <Text strong>{paymentMethod === 'cod' ? 'Cash on Delivery' : 'Card Payment'}</Text>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px' }}>
                 <Title level={4}>Total</Title>
@@ -208,7 +275,7 @@ export default function CheckoutPage() {
                 loading={placingOrder}
                 disabled={!selectedAddressId}
               >
-                Confirm Order
+                {paymentMethod === 'cod' ? 'Confirm Order' : 'Pay & Place Order'}
               </Button>
             )}
         </Card>

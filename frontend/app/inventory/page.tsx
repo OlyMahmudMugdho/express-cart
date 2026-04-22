@@ -23,7 +23,7 @@ export default function InventoryDashboard() {
     { title: 'Price', dataIndex: 'price', key: 'price' },
     { title: 'Stock', dataIndex: 'stockQuantity', key: 'stockQuantity' },
     { title: 'Status', dataIndex: 'isActive', key: 'isActive', render: (active: boolean) => <Tag color={active ? 'green' : 'red'}>{active ? 'Active' : 'Inactive'}</Tag> },
-    { title: 'Action', key: 'action', render: (_: any, record: any) => <Link href={`/inventory/edit/${record.id}`}>Edit</Link> },
+    { title: 'Action', key: 'action', render: (_: any, record: any) => <Link href={`/inventory/edit?id=${record.id}`}>Edit</Link> },
   ];
 
   return (

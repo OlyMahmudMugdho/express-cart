@@ -31,7 +31,7 @@ interface Category {
 }
 
 import Navbar from '@/components/Navbar';
-// ... (rest of imports)
+import { BASE_URI } from '@/constants/api';
 
 export default function HomePage() {
   const [loading, setLoading] = useState(true);
@@ -42,8 +42,8 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         const [catRes, prodRes] = await Promise.all([
-          fetch('http://localhost:3000/categories'),
-          fetch('http://localhost:3000/products')
+          fetch(`${BASE_URI}/categories`),
+          fetch(`${BASE_URI}/products`)
         ]);
         const catData = await catRes.json();
         const prodData = await prodRes.json();
@@ -127,7 +127,7 @@ export default function HomePage() {
                     cover={<img alt={p.name} src={p.images?.[0]?.url || 'https://via.placeholder.com/200'} style={{ height: '200px', objectFit: 'cover' }} />}
                  >
                    <Card.Meta 
-                     title={<Link href={`/products/${p.id}`}>{p.name}</Link>} 
+                     title={<Link href={`/products/details?id=${p.id}`}>{p.name}</Link>} 
                      description={
                        <div>
                          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#3f51b5' }}>${p.price}</div>

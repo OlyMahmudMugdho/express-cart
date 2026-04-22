@@ -15,7 +15,7 @@ export default function EditProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('http://localhost:3000/users/profile', {
+    fetch(`${BASE_URI}/users/profile`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
       .then(res => res.json())
@@ -26,7 +26,7 @@ export default function EditProfilePage() {
   }, [form]);
 
   const onFinish = async (values: any) => {
-    const res = await fetch('http://localhost:3000/users/profile', {
+    const res = await fetch(`${BASE_URI}/users/profile`, {
       method: 'PATCH',
       headers: { 
         'Content-Type': 'application/json',

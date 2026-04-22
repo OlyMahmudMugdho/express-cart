@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Layout, Form, Input, Button, Typography, message, Spin, Tabs, Table, List, Descriptions, InputNumber, Modal } from 'antd';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
+import { BASE_URI } from '@/constants/api';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -20,14 +21,14 @@ export default function ProfilePage() {
 
   const fetchCart = async () => {
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
-    const res = await fetch('http://localhost:3000/cart', { headers });
+    const res = await fetch(`${BASE_URI}/cart`, { headers });
     const data = await res.json();
     setCart(data.items || []);
   };
 
   const fetchAddresses = async () => {
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
-    const res = await fetch('http://localhost:3000/users/addresses', { headers });
+    const res = await fetch(`${BASE_URI}/users/addresses`, { headers });
     const data = await res.json();
     setAddresses(data || []);
   };
@@ -37,8 +38,8 @@ export default function ProfilePage() {
       const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
       try {
         const [profRes, orderRes] = await Promise.all([
-          fetch('http://localhost:3000/users/profile', { headers }),
-          fetch('http://localhost:3000/checkout/orders', { headers })
+          fetch(`${BASE_URI}/users/profile`, { headers }),
+          fetch(`${BASE_URI}/checkout/orders`, { headers })
         ]);
         
         const profData = await profRes.json();
@@ -61,7 +62,7 @@ export default function ProfilePage() {
 
   const addAddress = async (values: any) => {
     try {
-      const res = await fetch('http://localhost:3000/users/addresses', {
+      const res = await fetch(`${BASE_URI}/users/addresses`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -84,7 +85,7 @@ export default function ProfilePage() {
 
   const deleteAddress = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:3000/users/addresses/${id}`, {
+      const res = await fetch(`${BASE_URI}/users/addresses/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
       });
@@ -101,7 +102,7 @@ export default function ProfilePage() {
 
   const updateCartItem = async (itemId: string, quantity: number) => {
     try {
-      const res = await fetch(`http://localhost:3000/cart/items/${itemId}`, {
+      const res = await fetch(`${BASE_URI}/cart/items/${itemId}`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
@@ -122,7 +123,7 @@ export default function ProfilePage() {
 
   const removeCartItem = async (itemId: string) => {
     try {
-      const res = await fetch(`http://localhost:3000/cart/items/${itemId}`, {
+      const res = await fetch(`${BASE_URI}/cart/items/${itemId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
       });
@@ -138,7 +139,7 @@ export default function ProfilePage() {
   };
 
   const onFinish = async (values: any) => {
-    const res = await fetch('http://localhost:3000/users/profile', {
+    const res = await fetch(`${BASE_URI}/users/profile`, {
       method: 'PATCH',
       headers: { 
         'Content-Type': 'application/json',

@@ -16,9 +16,8 @@ import { StripeModule } from './stripe/stripe.module';
   imports: [
     ConfigModule,
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', 'frontend', '.next'),
-      serveRoot: '/',
-      exclude: ['/api*'],
+      rootPath: join(__dirname, '..', 'public'),
+      exclude: ['/api/:path(.*)'],
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',

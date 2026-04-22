@@ -121,7 +121,7 @@ function ProductsContent() {
                     cover={<img alt={p.name} src={p.images?.[0]?.url || 'https://via.placeholder.com/200'} style={{ height: '200px', objectFit: 'cover' }} />}
                  >
                    <Card.Meta 
-                     title={<Link href={`/products/${p.id}`}>{p.name}</Link>} 
+                     title={<Link href={`/products/details?id=${p.id}`}>{p.name}</Link>} 
                      description={
                        <div>
                          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#3f51b5' }}>${p.price}</div>

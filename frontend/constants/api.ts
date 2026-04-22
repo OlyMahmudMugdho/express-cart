@@ -1,2 +1,2 @@
 // constants/api.ts
-export const BASE_URI = 'http://localhost:3000';
+export const BASE_URI = process.env.NEXT_PUBLIC_API_URL || '/api';

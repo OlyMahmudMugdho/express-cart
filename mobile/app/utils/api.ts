@@ -205,5 +205,26 @@ export function useApi() {
       }
       return res.json();
     },
+    async updateProfile(payload: { firstName?: string; lastName?: string; phone?: string }) {
+      const res = await fetch(`${BASE}/users/profile`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to update profile');
+      }
+      return res.json();
+    },
+    async getProfile() {
+      const res = await fetch(`${BASE}/users/profile`, {
+        headers: getHeaders(),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to fetch profile');
+      }
+      return res.json();
+    },
   };
 }

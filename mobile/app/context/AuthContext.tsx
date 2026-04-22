@@ -17,6 +17,7 @@ type AuthContextType = {
   verifyOtp: (code: string) => Promise<{ success: boolean }>;
   forgotPassword: (email: string) => Promise<{ success: boolean }>;
   resetPassword: (code: string, newPassword: string) => Promise<{ success: boolean }>;
+  updateUser: (userData: any) => Promise<void>;
   signOut: () => void;
 };
 
@@ -30,6 +31,7 @@ const AuthContext = createContext<AuthContextType>({
   verifyOtp: async () => ({ success: false }),
   forgotPassword: async () => ({ success: false }),
   resetPassword: async () => ({ success: false }),
+  updateUser: async () => {},
   signOut: () => {},
 });
 
@@ -207,6 +209,16 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function updateUser(userData: any) {
+    try {
+      const newUser = { ...user, ...userData };
+      await AsyncStorage.setItem('auth_user', JSON.stringify(newUser));
+      setUser(newUser);
+    } catch (err) {
+      console.warn('updateUser error', err);
+    }
+  }
+
   function signOut() {
     AsyncStorage.removeItem('auth_token');
     AsyncStorage.removeItem('auth_user');
@@ -226,6 +238,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       verifyOtp, 
       forgotPassword, 
       resetPassword,
+      updateUser,
       signOut 
     }}>
       {children}

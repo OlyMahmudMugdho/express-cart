@@ -4,6 +4,8 @@ import { Text, Button, ActivityIndicator, Snackbar } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApi } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ProductDetail() {
   const { id } = useLocalSearchParams();
@@ -37,18 +39,20 @@ export default function ProductDetail() {
       if (token) {
         res = await api.addToCart(id as string, 1);
       } else {
-        // Fallback or implementation of guest cart if needed
         res = await api.addToCartGuest(id as string, 1);
       }
-      console.log('Add to cart response:', res);
       setAdding(false);
-      setSnackbarMessage('Item added to cart!');
-      setSnackbarColor('#22c55e');
+      
+      // Success Haptic
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      
+      setSnackbarMessage('Added to your cart');
+      setSnackbarColor('#0f172a');
       setSnackbarVisible(true);
     } catch (err: any) {
       setAdding(false);
-      console.warn(err);
-      setSnackbarMessage(err.message || 'Failed to add item to cart');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setSnackbarMessage(err.message || 'Failed to add to cart');
       setSnackbarColor('#ef4444');
       setSnackbarVisible(true);
     }
@@ -86,15 +90,18 @@ export default function ProductDetail() {
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
-        duration={3000}
+        duration={2500}
         action={{
           label: 'View Cart',
-          labelStyle: { color: '#fff' },
-          onPress: () => router.push('/(tabs)/cart'),
+          textColor: '#60a5fa',
+          onPress: () => router.push('/(tabs)/cart/'),
         }}
         style={[styles.snackbar, { backgroundColor: snackbarColor }]}
       >
-        {snackbarMessage}
+        <View style={styles.snackbarContent}>
+          <Ionicons name="checkmark-circle" size={20} color="#4ade80" />
+          <Text style={styles.snackbarText}>{snackbarMessage}</Text>
+        </View>
       </Snackbar>
     </View>
   );
@@ -126,7 +133,19 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   snackbar: {
-    backgroundColor: '#0f172a',
-    bottom: 20,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginBottom: 24,
+    elevation: 6,
+  },
+  snackbarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  snackbarText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

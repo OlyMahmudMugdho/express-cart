@@ -613,8 +613,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   snackbar: {
-    backgroundColor: '#0f172a',
-    bottom: 20,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginBottom: 24,
+    elevation: 6,
   },
   waitingContainer: {
     flex: 1,

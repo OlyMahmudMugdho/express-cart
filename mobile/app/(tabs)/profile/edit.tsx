@@ -1,35 +1,91 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Text, TextInput, Button, Snackbar } from 'react-native-paper';
+import { Text, TextInput, Button, Snackbar, ActivityIndicator } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { useApi } from '../../utils/api';
+import * as Haptics from 'expo-haptics';
 
 export default function EditProfile() {
   const router = useRouter();
-  const { user } = useAuth();
+  const api = useApi();
+  const { user, updateUser, token, isLoading: authLoading } = useAuth();
+  
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phone, setPhone] = useState(user?.phone || '');
+  
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarColor, setSnackbarColor] = useState('#0f172a');
+
+  // 1. Initial sync from context
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
+      setPhone(user.phone || '');
+      // If we already have user data from context, we can stop the initial "full screen" fetching
+      setFetching(false);
+    }
+  }, [user]);
+
+  // 2. Refresh from API to get most recent data
+  useEffect(() => {
+    if (token && !authLoading) {
+      fetchProfile();
+    }
+  }, [token, authLoading]);
+
+  const fetchProfile = async () => {
+    try {
+      const data = await api.getProfile();
+      console.log('Fetched profile data:', data);
+      setFirstName(data.firstName || '');
+      setLastName(data.lastName || '');
+      setPhone(data.phone || '');
+      updateUser(data);
+    } catch (err) {
+      console.warn('Failed to fetch profile from API:', err);
+    } finally {
+      setFetching(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!firstName.trim()) {
       setSnackbarMessage('First name is required');
+      setSnackbarColor('#ef4444');
       setSnackbarVisible(true);
       return;
     }
 
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const updatedUser = await api.updateProfile({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone.trim(),
+      });
+      
+      await updateUser(updatedUser);
+      
+      // Success Haptic
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      
       setSnackbarMessage('Profile updated successfully');
+      setSnackbarColor('#0f172a');
       setSnackbarVisible(true);
       setTimeout(() => router.replace('/profile/account'), 1500);
-    } catch (err) {
-      setSnackbarMessage('Failed to update profile');
+    } catch (err: any) {
+      // Error Haptic
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      
+      setSnackbarMessage(err.message || 'Failed to update profile');
+      setSnackbarColor('#ef4444');
       setSnackbarVisible(true);
     } finally {
       setLoading(false);
@@ -39,6 +95,14 @@ export default function EditProfile() {
   const handleCancel = () => {
     router.replace('/profile/account');
   };
+
+  if (fetching) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#0f172a" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -59,7 +123,11 @@ export default function EditProfile() {
               value={firstName}
               onChangeText={setFirstName}
               style={styles.input}
+              outlineColor="#e2e8f0"
+              activeOutlineColor="#0f172a"
+              textColor="#0f172a"
               placeholder="Enter first name"
+              placeholderTextColor="#94a3b8"
             />
           </View>
 
@@ -70,7 +138,11 @@ export default function EditProfile() {
               value={lastName}
               onChangeText={setLastName}
               style={styles.input}
+              outlineColor="#e2e8f0"
+              activeOutlineColor="#0f172a"
+              textColor="#0f172a"
               placeholder="Enter last name"
+              placeholderTextColor="#94a3b8"
             />
           </View>
 
@@ -81,7 +153,11 @@ export default function EditProfile() {
               value={phone}
               onChangeText={setPhone}
               style={styles.input}
+              outlineColor="#e2e8f0"
+              activeOutlineColor="#0f172a"
+              textColor="#0f172a"
               placeholder="Enter phone number"
+              placeholderTextColor="#94a3b8"
               keyboardType="phone-pad"
             />
           </View>
@@ -92,6 +168,8 @@ export default function EditProfile() {
               mode="outlined"
               value={user?.email || ''}
               style={[styles.input, styles.disabledInput]}
+              outlineColor="#e2e8f0"
+              textColor="#64748b"
               disabled
             />
             <Text style={styles.helperText}>Email cannot be changed</Text>
@@ -123,9 +201,17 @@ export default function EditProfile() {
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
-        duration={3000}
+        duration={2500}
+        style={[styles.snackbar, { backgroundColor: snackbarColor }]}
       >
-        {snackbarMessage}
+        <View style={styles.snackbarContent}>
+          <Ionicons 
+            name={snackbarColor === '#ef4444' ? "alert-circle" : "checkmark-circle"} 
+            size={20} 
+            color={snackbarColor === '#ef4444' ? "#fff" : "#4ade80"} 
+          />
+          <Text style={styles.snackbarText}>{snackbarMessage}</Text>
+        </View>
       </Snackbar>
     </View>
   );
@@ -191,5 +277,21 @@ const styles = StyleSheet.create({
   cancelButton: {
     borderRadius: 10,
     borderColor: '#64748b',
+  },
+  snackbar: {
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginBottom: 24,
+    elevation: 6,
+  },
+  snackbarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  snackbarText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

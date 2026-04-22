@@ -2,25 +2,36 @@
 
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../admin-layout';
-import { Table, Button, message, Popconfirm, Modal, Form, Input, InputNumber } from 'antd';
+import { Table, Button, message, Popconfirm, Modal, Form, Input, Typography, Space } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { BASE_URI } from '@/constants/api';
+
+const { Title, Text } = Typography;
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
   const fetchCategories = async () => {
-    const res = await fetch(`${BASE_URI}/categories`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    });
-    const data = await res.json();
-    setCategories(Array.isArray(data) ? data : []);
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URI}/categories`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await res.json();
+      setCategories(Array.isArray(data) ? data : []);
+    } catch (e) {
+      message.error('Failed to load categories');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async (values: any) => {
@@ -32,7 +43,7 @@ export default function AdminCategoriesPage() {
       body: JSON.stringify(values)
     });
     if (res.ok) {
-        message.success('Category saved');
+        message.success('Category saved successfully');
         setIsModalVisible(false);
         fetchCategories();
     } else {
@@ -52,29 +63,77 @@ export default function AdminCategoriesPage() {
   };
 
   const columns = [
-    { title: 'Name', dataIndex: 'name' },
-    { title: 'Slug', dataIndex: 'slug' },
-    { title: 'Action', render: (_: any, record: any) => (
-        <>
-            <Button onClick={() => { setEditingId(record.id); form.setFieldsValue(record); setIsModalVisible(true); }} style={{marginRight: 8}}>Edit</Button>
-            <Popconfirm title="Delete?" onConfirm={() => deleteCategory(record.id)}>
-                <Button danger>Delete</Button>
+    { 
+      title: 'Name', 
+      dataIndex: 'name', 
+      key: 'name',
+      render: (text: string) => <Text strong>{text}</Text>
+    },
+    { 
+      title: 'Slug', 
+      dataIndex: 'slug', 
+      key: 'slug',
+      render: (text: string) => <Tag color="blue">{text}</Tag>
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      ellipsis: true,
+    },
+    { 
+      title: 'Action', 
+      key: 'action',
+      render: (_: any, record: any) => (
+        <Space>
+            <Button 
+              type="text" 
+              icon={<EditOutlined />} 
+              onClick={() => { setEditingId(record.id); form.setFieldsValue(record); setIsModalVisible(true); }} 
+            />
+            <Popconfirm title="Delete this category?" onConfirm={() => deleteCategory(record.id)} okText="Yes" cancelText="No">
+                <Button type="text" danger icon={<DeleteOutlined />} />
             </Popconfirm>
-        </>
+        </Space>
     )}
   ];
 
   return (
     <AdminLayout>
-      <Button type="primary" onClick={() => { setEditingId(null); form.resetFields(); setIsModalVisible(true); }} style={{ marginBottom: 16 }}>Add Category</Button>
-      <Table dataSource={categories} columns={columns} rowKey="id" />
-      <Modal title={editingId ? "Edit Category" : "Add Category"} open={isModalVisible} onCancel={() => setIsModalVisible(false)} onOk={() => form.submit()}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <Title level={4} style={{ margin: 0 }}>Category Management</Title>
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          onClick={() => { setEditingId(null); form.resetFields(); setIsModalVisible(true); }}
+        >
+          Add Category
+        </Button>
+      </div>
+
+      <Table 
+        dataSource={categories} 
+        columns={columns} 
+        rowKey="id" 
+        loading={loading}
+        pagination={{ pageSize: 10 }}
+        style={{ background: '#fff' }}
+      />
+
+      <Modal 
+        title={editingId ? "Edit Category" : "Add Category"} 
+        open={isModalVisible} 
+        onCancel={() => setIsModalVisible(false)} 
+        onOk={() => form.submit()}
+      >
         <Form form={form} onFinish={handleSave} layout="vertical">
-          <Form.Item name="name" label="Name" rules={[{required: true}]}><Input /></Form.Item>
-          <Form.Item name="slug" label="Slug" rules={[{required: true}]}><Input /></Form.Item>
-          <Form.Item name="description" label="Description"><Input.TextArea /></Form.Item>
+          <Form.Item name="name" label="Name" rules={[{required: true}]}><Input placeholder="Category name" /></Form.Item>
+          <Form.Item name="slug" label="Slug" rules={[{required: true}]}><Input placeholder="category-slug" /></Form.Item>
+          <Form.Item name="description" label="Description"><Input.TextArea rows={4} placeholder="Category description" /></Form.Item>
         </Form>
       </Modal>
     </AdminLayout>
   );
 }
+
+import { Tag } from 'antd';

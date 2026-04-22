@@ -12,11 +12,27 @@ export default function Navbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [search, setSearch] = useState('');
   const router = useRouter();
 
   useEffect(() => {
-    setIsAuthed(!!localStorage.getItem('token'));
+    const token = localStorage.getItem('token');
+    setIsAuthed(!!token);
+    
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const role = payload.role?.toLowerCase();
+        setIsAdmin(role === 'admin' || role === 'superadmin');
+      } catch (e) {
+        console.error('Error decoding token:', e);
+        setIsAdmin(false);
+      }
+    } else {
+      setIsAdmin(false);
+    }
+
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     handleResize();
@@ -51,7 +67,15 @@ export default function Navbar() {
         </Space>
       ) : (
         <>
-          <Menu mode="horizontal" style={{ flex: 1, border: 'none', justifyContent: 'center' }} items={[{ key: 'shop', label: <Link href="/products">Shop</Link> }, { key: 'deals', label: 'Deals' }]} />
+          <Menu 
+            mode="horizontal" 
+            style={{ flex: 1, border: 'none', justifyContent: 'center' }} 
+            items={[
+              { key: 'shop', label: <Link href="/products">Shop</Link> }, 
+              { key: 'deals', label: 'Deals' },
+              ...(isAdmin ? [{ key: 'admin', label: <Link href="/admin" style={{ color: '#f5222d', fontWeight: 'bold' }}>Admin Panel</Link> }] : [])
+            ]} 
+          />
           <Space size="small">
             <Input.Search 
               placeholder="Search products..." 
@@ -79,6 +103,7 @@ export default function Navbar() {
           <Menu mode="vertical" onClick={() => setIsDrawerOpen(false)} items={[
             { key: 'shop', label: <Link href="/products">Shop</Link> },
             { key: 'deals', label: 'Deals' },
+            ...(isAdmin ? [{ key: 'admin', label: <Link href="/admin" style={{ color: '#f5222d', fontWeight: 'bold' }}>Admin Panel</Link> }] : []),
             ...(isAuthed 
                 ? [{ key: 'profile', label: <Link href="/profile">Profile</Link> }, { key: 'logout', label: <span onClick={handleLogout}>Logout</span> }]
                 : [{ key: 'login', label: <Link href="/login">Login</Link> }, { key: 'register', label: <Link href="/register">Register</Link> }]

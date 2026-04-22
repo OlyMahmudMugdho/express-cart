@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CONFIG } from '../config';
 
 type PendingAuth = {
   userId: string | null;
@@ -45,7 +46,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [pendingAuth, setPendingAuth] = useState<PendingAuth>({ userId: null, email: null, type: null });
   const [loading, setLoading] = useState(true);
 
-  const BASE = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.202:3000/api';
+  const BASE = CONFIG.API_URL;
 
   useEffect(() => {
     loadStoredAuth();

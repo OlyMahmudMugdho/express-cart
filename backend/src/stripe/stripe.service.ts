@@ -106,8 +106,8 @@ export class StripeService {
           },
         ],
         mode: 'payment',
-        success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/cart`,
+        success_url: process.env.STRIPE_SUCCESS_URL || `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: process.env.STRIPE_CANCEL_URL || `${process.env.FRONTEND_URL || 'http://localhost:3000'}/cart`,
       });
       this.logger.log(`Checkout session created: ${session.id}, URL: ${session.url}`);
       return session;

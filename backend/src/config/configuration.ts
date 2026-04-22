@@ -30,6 +30,12 @@ class Environment {
   STRIPE_WEBHOOK_SECRET: string;
 
   @IsString()
+  STRIPE_SUCCESS_URL: string;
+
+  @IsString()
+  STRIPE_CANCEL_URL: string;
+
+  @IsString()
   SMTP_HOST: string;
 
   @IsNumber()

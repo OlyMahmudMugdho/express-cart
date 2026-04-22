@@ -19,7 +19,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ConfigModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
-      exclude: ['/api/:path(.*)'],
+      exclude: ['/api*'],
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',

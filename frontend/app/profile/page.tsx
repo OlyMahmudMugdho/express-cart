@@ -5,6 +5,7 @@ import { Layout, Form, Input, Button, Typography, message, Spin, Tabs, Table, Li
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { BASE_URI } from '@/constants/api';
+import Invoice from '@/components/Invoice';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -17,7 +18,31 @@ export default function ProfilePage() {
   const [cart, setCart] = useState<any[]>([]);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [addressForm] = Form.useForm();
+
+  const showOrderDetails = async (orderId: string) => {
+    setLoading(true); // Show loading while fetching details
+    try {
+      const res = await fetch(`${BASE_URI}/checkout/orders/${orderId}/details`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        const orderData = await res.json();
+        setSelectedOrder(orderData);
+        setIsOrderModalOpen(true);
+      } else {
+        const errorData = await res.json();
+        message.error(errorData.message || 'Failed to load order details');
+      }
+    } catch (e) {
+      console.error(e);
+      message.error('Failed to load order details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchCart = async () => {
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
@@ -178,10 +203,22 @@ export default function ProfilePage() {
       key: '2',
       label: 'Order History',
       children: (
-        <Table dataSource={orders} columns={[
-            { title: 'Order ID', dataIndex: 'orderNumber', key: 'orderNumber' },
-            { title: 'Total', dataIndex: 'total', key: 'total' },
-            { title: 'Status', dataIndex: 'status', key: 'status' }
+        <Table 
+          dataSource={orders} 
+          scroll={{ x: 600 }}
+          columns={[
+            { title: 'Order ID', dataIndex: 'orderNumber', key: 'orderNumber', width: 150 },
+            { title: 'Total', dataIndex: 'total', key: 'total', width: 100, render: (t) => `$${Number(t).toFixed(2)}` },
+            { title: 'Status', dataIndex: 'status', key: 'status', width: 120, render: (s) => s.toUpperCase() },
+            { 
+              title: 'Action', 
+              key: 'action', 
+              fixed: 'right',
+              width: 120,
+              render: (_, record: any) => (
+                <Button size="small" onClick={() => showOrderDetails(record.id)}>View Invoice</Button>
+              )
+            }
         ]} rowKey="id" />
       ),
     },
@@ -190,31 +227,37 @@ export default function ProfilePage() {
       label: 'Cart',
       children: (
         <>
-          <Table dataSource={cart} columns={[
-            { title: 'Product', dataIndex: ['product', 'name'], key: 'name' },
-            { title: 'Price', dataIndex: 'price', key: 'price' },
-            { 
-              title: 'Quantity', 
-              dataIndex: 'quantity', 
-              key: 'quantity', 
-              render: (quantity, record: any) => (
-                <InputNumber 
-                  min={1} 
-                  defaultValue={quantity} 
-                  onBlur={(e) => updateCartItem(record.id, parseInt(e.target.value))} 
-                />
-              )
-            },
-            { 
-              title: 'Action', 
-              key: 'action', 
-              render: (_, record: any) => (
-                <Button danger onClick={() => removeCartItem(record.id)}>Remove</Button>
-              )
-            }
-          ]} rowKey="id" />
+          <Table 
+            dataSource={cart} 
+            scroll={{ x: 600 }}
+            columns={[
+              { title: 'Product', dataIndex: ['product', 'name'], key: 'name', minWidth: 200 },
+              { title: 'Price', dataIndex: 'price', key: 'price', width: 100 },
+              { 
+                title: 'Quantity', 
+                dataIndex: 'quantity', 
+                key: 'quantity', 
+                width: 120,
+                render: (quantity, record: any) => (
+                  <InputNumber 
+                    min={1} 
+                    size="small"
+                    defaultValue={quantity} 
+                    onBlur={(e) => updateCartItem(record.id, parseInt(e.target.value))} 
+                  />
+                )
+              },
+              { 
+                title: 'Action', 
+                key: 'action', 
+                width: 100,
+                render: (_, record: any) => (
+                  <Button danger size="small" onClick={() => removeCartItem(record.id)}>Remove</Button>
+                )
+              }
+            ]} rowKey="id" />
           <Link href="/checkout">
-              <Button type="primary" size="large" style={{ marginTop: '16px' }}>Proceed to Checkout</Button>
+              <Button type="primary" size="large" block style={{ marginTop: '16px' }}>Proceed to Checkout</Button>
           </Link>
         </>
       ),
@@ -224,17 +267,22 @@ export default function ProfilePage() {
       label: 'Addresses',
       children: (
         <>
-          <Table dataSource={addresses} columns={[
-              { title: 'Label', dataIndex: 'label', key: 'label' },
-              { title: 'Street', dataIndex: 'street', key: 'street' },
-              { title: 'City', dataIndex: 'city', key: 'city' },
-              { title: 'State', dataIndex: 'state', key: 'state' },
-              { title: 'Country', dataIndex: 'country', key: 'country' },
+          <Table 
+            dataSource={addresses} 
+            scroll={{ x: 700 }}
+            columns={[
+              { title: 'Label', dataIndex: 'label', key: 'label', width: 100 },
+              { title: 'Street', dataIndex: 'street', key: 'street', width: 200 },
+              { title: 'City', dataIndex: 'city', key: 'city', width: 120 },
+              { title: 'State', dataIndex: 'state', key: 'state', width: 100 },
+              { title: 'Country', dataIndex: 'country', key: 'country', width: 100 },
               { 
                 title: 'Action', 
                 key: 'action', 
+                fixed: 'right',
+                width: 100,
                 render: (_, record: any) => (
-                  <Button danger onClick={() => deleteAddress(record.id)}>Delete</Button>
+                  <Button danger size="small" onClick={() => deleteAddress(record.id)}>Delete</Button>
                 )
               }
           ]} rowKey="id" />
@@ -269,6 +317,24 @@ export default function ProfilePage() {
         <Title level={2}>Dashboard</Title>
         <Tabs defaultActiveKey="1" items={items} />
       </Content>
+
+      <Modal
+        title={null}
+        open={isOrderModalOpen}
+        onCancel={() => setIsOrderModalOpen(false)}
+        footer={[
+          <Button key="close" className="no-print" onClick={() => setIsOrderModalOpen(false)}>Close</Button>,
+          <Button key="print" className="no-print" type="primary" onClick={() => window.print()}>Print Invoice</Button>
+        ]}
+        width={900}
+        style={{ top: 20 }}
+        styles={{ body: { padding: 0 } }}
+        closable={false}
+      >
+        <div className="printable-invoice">
+          <Invoice order={selectedOrder} />
+        </div>
+      </Modal>
     </Layout>
   );
 }

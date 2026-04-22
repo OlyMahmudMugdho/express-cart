@@ -18,8 +18,7 @@ export class CheckoutController {
   }
 
   @Get('orders/:id/details')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @UseGuards(JwtAuthGuard)
   async findOneOrder(@Param('id', ParseUUIDPipe) id: string) {
     return this.checkoutService.findOneOrder(id);
   }

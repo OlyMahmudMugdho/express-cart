@@ -102,11 +102,11 @@ function ProductsContent() {
                   onSearch={(val) => { setSearch(val); setPage(1); }}
                   style={{ width: 200 }}
                 />
-                <Select defaultValue="all" className="w-full md:w-40" onChange={(val) => { setSelectedCategory(val); setPage(1); }}>
+                <Select defaultValue="all" style={{ width: 180 }} onChange={(val) => { setSelectedCategory(val); setPage(1); }}>
                     <Option value="all">All Categories</Option>
                     {categories.map(c => <Option key={c.id} value={c.id}>{c.name}</Option>)}
                 </Select>
-                <Select defaultValue="none" className="w-full md:w-40" onChange={(val) => { setSortBy(val); setPage(1); }}>
+                <Select defaultValue="none" style={{ width: 180 }} onChange={(val) => { setSortBy(val); setPage(1); }}>
                     <Option value="none">Sort By</Option>
                     <Option value="price-low">Price: Low to High</Option>
                     <Option value="price-high">Price: High to Low</Option>

@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../admin-layout';
-import { Table, Select, message, Tag, Typography, Space, Card, Button } from 'antd';
+import { Table, Select, message, Tag, Typography, Space, Card, Button, Modal } from 'antd';
 import { ShoppingCartOutlined, EyeOutlined } from '@ant-design/icons';
 import { BASE_URI } from '@/constants/api';
+import Invoice from '@/components/Invoice';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -12,6 +13,8 @@ const { Option } = Select;
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [isOrderModalVisible, setIsOrderModalVisible] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -29,6 +32,21 @@ export default function AdminOrdersPage() {
       message.error('Failed to load orders');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const showOrderDetails = async (orderId: string) => {
+    try {
+      const res = await fetch(`${BASE_URI}/checkout/orders/${orderId}/details`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        const orderData = await res.json();
+        setSelectedOrder(orderData);
+        setIsOrderModalVisible(true);
+      }
+    } catch (e) {
+      message.error('Failed to load order details');
     }
   };
 
@@ -108,8 +126,14 @@ export default function AdminOrdersPage() {
     {
       title: 'Action',
       key: 'action',
-      render: () => (
-        <Button type="text" icon={<EyeOutlined />} disabled>Details</Button>
+      render: (_: any, record: any) => (
+        <Button 
+          type="text" 
+          icon={<EyeOutlined />} 
+          onClick={() => showOrderDetails(record.id)}
+        >
+          Details
+        </Button>
       )
     }
   ];
@@ -129,6 +153,25 @@ export default function AdminOrdersPage() {
         pagination={{ pageSize: 10 }}
         style={{ background: '#fff' }}
       />
+
+      {/* ORDER DETAILS MODAL */}
+      <Modal
+        title={null}
+        open={isOrderModalVisible}
+        onCancel={() => setIsOrderModalVisible(false)}
+        footer={[
+          <Button key="close" className="no-print" onClick={() => setIsOrderModalVisible(false)}>Close</Button>,
+          <Button key="print" className="no-print" type="primary" onClick={() => window.print()}>Print Invoice</Button>
+        ]}
+        width={900}
+        style={{ top: 20 }}
+        styles={{ body: { padding: 0 } }}
+        closable={false}
+      >
+        <div className="printable-invoice">
+          <Invoice order={selectedOrder} />
+        </div>
+      </Modal>
     </AdminLayout>
   );
 }

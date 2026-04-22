@@ -83,14 +83,15 @@ export class ProductsService {
       qb.andWhere('product.price <= :maxPrice', { maxPrice: query.maxPrice });
     }
 
-    const sortMap: Record<string, string> = {
-      'price_asc': 'product.price ASC',
-      'price_desc': 'product.price DESC',
-      'newest': 'product.createdAt DESC',
-      'name': 'product.name ASC',
+    const sortMap: Record<string, { column: string, order: 'ASC' | 'DESC' }> = {
+      'price_asc': { column: 'product.price', order: 'ASC' },
+      'price_desc': { column: 'product.price', order: 'DESC' },
+      'newest': { column: 'product.createdAt', order: 'DESC' },
+      'name': { column: 'product.name', order: 'ASC' },
     };
+
     if (query.sort && sortMap[query.sort]) {
-      qb.orderBy(sortMap[query.sort]);
+      qb.orderBy(sortMap[query.sort].column, sortMap[query.sort].order);
     } else {
       qb.orderBy('product.createdAt', 'DESC');
     }

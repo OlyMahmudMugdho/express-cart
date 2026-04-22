@@ -29,6 +29,7 @@ import {
 } from 'recharts';
 import { Parser } from 'json2csv';
 import { BASE_URI } from '@/constants/api';
+import Invoice from '@/components/Invoice';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -378,46 +379,21 @@ export default function AdminPage() {
 
       {/* ORDER DETAILS MODAL */}
       <Modal
-        title={`Order Details: ${selectedOrder?.orderNumber}`}
+        title={null}
         open={isOrderModalVisible}
         onCancel={() => setIsOrderModalVisible(false)}
         footer={[
-          <Button key="close" onClick={() => setIsOrderModalVisible(false)}>Close</Button>,
-          <Button key="print" type="primary" onClick={() => window.print()}>Print Invoice</Button>
+          <Button key="close" className="no-print" onClick={() => setIsOrderModalVisible(false)}>Close</Button>,
+          <Button key="print" className="no-print" type="primary" onClick={() => window.print()}>Print Invoice</Button>
         ]}
-        width={800}
+        width={900}
+        style={{ top: 20 }}
+        styles={{ body: { padding: 0 } }}
+        closable={false}
       >
-        {selectedOrder && (
-          <div>
-            <Descriptions bordered column={2} size="small" style={{ marginBottom: 24 }}>
-              <Descriptions.Item label="Order Number">{selectedOrder.orderNumber}</Descriptions.Item>
-              <Descriptions.Item label="Date">{new Date(selectedOrder.createdAt).toLocaleString()}</Descriptions.Item>
-              <Descriptions.Item label="Customer">{selectedOrder.user?.email || 'N/A'}</Descriptions.Item>
-              <Descriptions.Item label="Status">
-                <Tag color={selectedOrder.status === 'delivered' ? 'green' : 'blue'}>{selectedOrder.status.toUpperCase()}</Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Shipping Address" span={2}>{selectedOrder.shippingAddress}</Descriptions.Item>
-              <Descriptions.Item label="Total Amount" span={2}>
-                <Text strong style={{ fontSize: 18 }}>${Number(selectedOrder.total).toFixed(2)}</Text>
-              </Descriptions.Item>
-            </Descriptions>
-
-            <Title level={5}>Order Items</Title>
-            <Table
-              dataSource={selectedOrder.items}
-              pagination={false}
-              rowKey="id"
-              size="small"
-              columns={[
-                { title: 'Product', dataIndex: 'productName', key: 'productName' },
-                { title: 'SKU', dataIndex: 'sku', key: 'sku' },
-                { title: 'Price', dataIndex: 'price', key: 'price', render: (p) => `$${Number(p).toFixed(2)}` },
-                { title: 'Qty', dataIndex: 'quantity', key: 'quantity' },
-                { title: 'Total', dataIndex: 'total', key: 'total', render: (t) => `$${Number(t).toFixed(2)}` },
-              ]}
-            />
-          </div>
-        )}
+        <div className="printable-invoice">
+          <Invoice order={selectedOrder} />
+        </div>
       </Modal>
     </AdminLayout>
   );

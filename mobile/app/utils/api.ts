@@ -1,9 +1,9 @@
 import { useAuth } from '../context/AuthContext';
-
-const BASE = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.202:3000/api';
+import { CONFIG } from '../config';
 
 export function useApi() {
   const { token, isLoading } = useAuth();
+  const BASE = CONFIG.API_URL;
 
   const getHeaders = (): Record<string, string> => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };

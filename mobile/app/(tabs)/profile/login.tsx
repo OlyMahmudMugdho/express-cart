@@ -3,6 +3,7 @@ import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 're
 import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter, Link } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -44,6 +45,7 @@ export default function Login() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Text style={styles.title}>Welcome Back</Text>

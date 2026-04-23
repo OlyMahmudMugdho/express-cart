@@ -1,11 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
 import { ActivityIndicator, Text, Searchbar } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { useIsFocused } from '@react-navigation/native';
 import ProductCard from '../../components/ProductCard';
 import { useApi } from '../../utils/api';
 
 export default function Products() {
   const api = useApi();
+  const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const [products, setProducts] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -51,7 +56,8 @@ export default function Products() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar style="dark" />
       <Searchbar
         placeholder="Search products..."
         placeholderTextColor="#94a3b8"

@@ -1,5 +1,6 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
 
 export default function TabLayout() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="cart"
         options={{ 
-          title: '', 
+          title: 'Cart', 
           headerShown: false, 
           tabBarIcon: ({ color }) => <Ionicons name="basket" size={24} color={color} /> 
         }}

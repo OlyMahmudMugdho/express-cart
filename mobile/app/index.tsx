@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, View, ImageBackground, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
+import { StyleSheet, View, ImageBackground, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text } from 'react-native-paper';
 import { useAssets } from 'expo-asset';
+import { StatusBar } from 'expo-status-bar';
 
 export default function Index() {
   const [assets] = useAssets([require('../assets/banner.jpg')]);
@@ -11,7 +12,7 @@ export default function Index() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar style="dark" />
       
       <View style={styles.heroContainer}>
         {bannerSource ? (

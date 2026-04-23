@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, Button, Divider } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { useApi } from '../../utils/api';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
 
 interface MenuItemProps {
   icon: string;
@@ -16,7 +18,7 @@ interface MenuItemProps {
 
 function MenuItem({ icon, title, subtitle, onPress, showArrow = true }: MenuItemProps) {
   return (
-    <Button mode="text" onPress={onPress} style={styles.menuItem} contentStyle={styles.menuContent}>
+    <TouchableOpacity onPress={onPress} style={styles.menuItem}>
       <View style={styles.menuItemContent}>
         <View style={styles.menuIcon}>
           <Ionicons name={icon as any} size={20} color="#0f172a" />
@@ -27,7 +29,7 @@ function MenuItem({ icon, title, subtitle, onPress, showArrow = true }: MenuItem
         </View>
         {showArrow && <Ionicons name="chevron-forward" size={20} color="#94a3b8" />}
       </View>
-    </Button>
+    </TouchableOpacity>
   );
 }
 
@@ -36,6 +38,7 @@ export default function Account() {
   const api = useApi();
   const router = useRouter();
   const [ordersCount, setOrdersCount] = useState(0);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (token) {
@@ -62,115 +65,125 @@ export default function Account() {
 
   if (!user || !token) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="person" size={40} color="#fff" />
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <StatusBar style="dark" />
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="person" size={40} color="#fff" />
+            </View>
+            <Text style={styles.title}>Welcome to ExpressCart</Text>
+            <Text style={styles.subtitle}>Sign in to access your orders, favorites, and account settings.</Text>
           </View>
-          <Text style={styles.title}>Welcome to ExpressCart</Text>
-          <Text style={styles.subtitle}>Sign in to access your orders, favorites, and account settings.</Text>
-        </View>
-        <View style={styles.actions}>
-          <Link href="/profile/login" asChild>
-            <Button mode="contained" style={styles.primaryButton} contentStyle={styles.buttonContent} textColor="#fff">
-              Sign In
-            </Button>
-          </Link>
-          <Link href="/profile/register" asChild>
-            <Button mode="outlined" style={styles.secondaryButton} contentStyle={styles.buttonContent}>
-              Create Account
-            </Button>
-          </Link>
-        </View>
-        <View style={styles.features}>
-          <View style={styles.featureItem}>
-            <Ionicons name="shield-checkmark" size={24} color="#0f172a" />
-            <Text style={styles.featureText}>Secure Checkout</Text>
+          <View style={styles.actions}>
+            <Link href="/profile/login" asChild>
+              <Button mode="contained" style={styles.primaryButton} contentStyle={styles.buttonContent} textColor="#fff">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/profile/register" asChild>
+              <Button mode="outlined" style={styles.secondaryButton} contentStyle={styles.buttonContent}>
+                Create Account
+              </Button>
+            </Link>
           </View>
-          <View style={styles.featureItem}>
-            <Ionicons name="heart" size={24} color="#0f172a" />
-            <Text style={styles.featureText}>Wishlist</Text>
+          <View style={styles.features}>
+            <View style={styles.featureItem}>
+              <Ionicons name="shield-checkmark" size={24} color="#0f172a" />
+              <Text style={styles.featureText}>Secure Checkout</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Ionicons name="heart" size={24} color="#0f172a" />
+              <Text style={styles.featureText}>Wishlist</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Ionicons name="time" size={24} color="#0f172a" />
+              <Text style={styles.featureText}>Order Tracking</Text>
+            </View>
           </View>
-          <View style={styles.featureItem}>
-            <Ionicons name="time" size={24} color="#0f172a" />
-            <Text style={styles.featureText}>Order Tracking</Text>
-          </View>
-        </View>
+        </ScrollView>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View style={styles.profileHeader}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{displayName.charAt(0).toUpperCase()}</Text>
-        </View>
-        <Text style={styles.profileName}>{displayName}</Text>
-        <Text style={styles.profileEmail}>{user.email}</Text>
-      </View>
-
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{ordersCount}</Text>
-          <Text style={styles.statLabel}>Orders</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <TouchableOpacity 
-          style={styles.statItem} 
-          onPress={() => router.push('/profile/orders')}
-        >
-          <Text style={styles.statValue}>0</Text>
-          <Text style={styles.statLabel}>Wishlist</Text>
-        </TouchableOpacity>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>0</Text>
-          <Text style={styles.statLabel}>Addresses</Text>
-        </View>
-      </View>
-
-      <View style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>My Orders</Text>
-        <View style={styles.menuCard}>
-          <MenuItem 
-            icon="cube" 
-            title="My Orders" 
-            subtitle="View your order history"
-            onPress={() => router.push('/profile/orders')}
-          />
-          <Divider />
-          <MenuItem 
-            icon="location" 
-            title="Addresses" 
-            subtitle="Manage delivery addresses"
-            onPress={() => router.push('/profile/addresses')}
-          />
-        </View>
-      </View>
-
-      <View style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>Account</Text>
-        <View style={styles.menuCard}>
-          <MenuItem 
-            icon="create" 
-            title="Edit Profile" 
-            subtitle="Update your personal information"
-            onPress={() => router.push('/profile/edit')}
-          />
-        </View>
-      </View>
-
-      <Button 
-        mode="outlined" 
-        onPress={handleLogout} 
-        style={styles.logoutButton} 
-        textColor="#ef4444"
-        icon="log-out"
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar style="dark" />
+      <ScrollView 
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
       >
-        Sign Out
-      </Button>
-    </ScrollView>
+        <View style={styles.profileHeader}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{displayName.charAt(0).toUpperCase()}</Text>
+          </View>
+          <Text style={styles.profileName}>{displayName}</Text>
+          <Text style={styles.profileEmail}>{user.email}</Text>
+        </View>
+
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{ordersCount}</Text>
+            <Text style={styles.statLabel}>Orders</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <TouchableOpacity 
+            style={styles.statItem} 
+            onPress={() => router.push('/profile/orders')}
+          >
+            <Text style={styles.statValue}>0</Text>
+            <Text style={styles.statLabel}>Wishlist</Text>
+          </TouchableOpacity>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>0</Text>
+            <Text style={styles.statLabel}>Addresses</Text>
+          </View>
+        </View>
+
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>My Orders</Text>
+          <View style={styles.menuCard}>
+            <MenuItem 
+              icon="cube" 
+              title="My Orders" 
+              subtitle="View your order history"
+              onPress={() => router.push('/profile/orders')}
+            />
+            <Divider />
+            <MenuItem 
+              icon="location" 
+              title="Addresses" 
+              subtitle="Manage delivery addresses"
+              onPress={() => router.push('/profile/addresses')}
+            />
+          </View>
+        </View>
+
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          <View style={styles.menuCard}>
+            <MenuItem 
+              icon="create" 
+              title="Edit Profile" 
+              subtitle="Update your personal information"
+              onPress={() => router.push('/profile/edit')}
+            />
+          </View>
+        </View>
+
+        <Button 
+          mode="outlined" 
+          onPress={handleLogout} 
+          style={styles.logoutButton} 
+          textColor="#ef4444"
+          icon="log-out"
+        >
+          Sign Out
+        </Button>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -293,7 +306,9 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
+    height: '60%',
     backgroundColor: '#e2e8f0',
+    alignSelf: 'center',
   },
   menuSection: {
     marginBottom: 20,

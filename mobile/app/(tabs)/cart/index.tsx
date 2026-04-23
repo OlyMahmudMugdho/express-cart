@@ -2,14 +2,19 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, Image, StyleSheet, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApi } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useFocusEffect } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useIsFocused } from '@react-navigation/native';
 
 function CartHeader() {
+  const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   return (
-    <View style={headerStyles.container}>
+    <View style={[headerStyles.container, { paddingTop: insets.top + 10 }]}>
+      {isFocused && <StatusBar style="light" />}
       <View style={headerStyles.content}>
         <View style={headerStyles.badge}>
           <Text style={headerStyles.badgeText}>Shopping</Text>
@@ -24,7 +29,6 @@ function CartHeader() {
 const headerStyles = StyleSheet.create({
   container: {
     backgroundColor: '#0f172a',
-    paddingTop: 16,
     paddingBottom: 24,
     paddingHorizontal: 20,
   },
@@ -168,6 +172,7 @@ export default function Cart() {
   if (loading || authLoading) {
     return (
       <View style={styles.emptyContainer}>
+        {isFocused && <StatusBar style="dark" />}
         <Text style={styles.emptyText}>Loading...</Text>
         <Text style={styles.debugText}>Auth loading: {String(authLoading)}, Token: {token ? 'present' : 'missing'}</Text>
       </View>
@@ -177,6 +182,7 @@ export default function Cart() {
   if (error) {
     return (
       <View style={styles.emptyContainer}>
+        {isFocused && <StatusBar style="dark" />}
         <Text style={styles.errorText}>{error}</Text>
         <Text style={styles.debugText}>Token: {token ? 'present' : 'missing'}</Text>
         <Button onPress={fetchCart}>Retry</Button>
@@ -187,6 +193,7 @@ export default function Cart() {
   if (!token) {
     return (
       <View style={styles.emptyContainer}>
+        {isFocused && <StatusBar style="dark" />}
         <Text style={styles.emptyTitle}>Sign in to view cart</Text>
         <Text style={styles.emptySubtitle}>Your cart items will appear here after sign in</Text>
         <Link href="/profile/login" asChild>
@@ -199,6 +206,7 @@ export default function Cart() {
   if (!items.length) {
     return (
       <View style={styles.emptyContainer}>
+        {isFocused && <StatusBar style="dark" />}
         <View style={styles.emptyIcon}>
           <Text style={styles.emptyIconText}>🛒</Text>
         </View>

@@ -84,7 +84,12 @@ export default function Account() {
               </Button>
             </Link>
             <Link href="/profile/register" asChild>
-              <Button mode="outlined" style={styles.secondaryButton} contentStyle={styles.buttonContent}>
+              <Button 
+                mode="outlined" 
+                style={styles.secondaryButton} 
+                contentStyle={styles.buttonContent}
+                textColor="#0f172a"
+              >
                 Create Account
               </Button>
             </Link>
@@ -145,7 +150,7 @@ export default function Account() {
         </View>
 
         <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>My Orders</Text>
+          <Text style={styles.sectionTitle}>My Activity</Text>
           <View style={styles.menuCard}>
             <MenuItem 
               icon="cube" 
@@ -153,7 +158,12 @@ export default function Account() {
               subtitle="View your order history"
               onPress={() => router.push('/profile/orders')}
             />
-            <Divider />
+          </View>
+        </View>
+
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Preferences</Text>
+          <View style={styles.menuCard}>
             <MenuItem 
               icon="location" 
               title="Addresses" 
@@ -180,7 +190,6 @@ export default function Account() {
           onPress={handleLogout} 
           style={styles.logoutButton} 
           textColor="#ef4444"
-          icon="log-out"
         >
           Sign Out
         </Button>
@@ -313,7 +322,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   menuSection: {
-    marginBottom: 32, // Increased from 20 for better section separation
+    marginBottom: 24, // Reduced from 32
   },
   sectionTitle: {
     fontSize: 14,
@@ -364,7 +373,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   logoutButton: {
-    marginTop: 8,
+    marginTop: 0, // Reduced from 8
     borderColor: '#ef4444',
     borderRadius: 12,
   },

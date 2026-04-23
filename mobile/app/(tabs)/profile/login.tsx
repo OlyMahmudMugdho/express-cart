@@ -32,7 +32,7 @@ export default function Login() {
     setLoading(false);
     
     if (result.success) {
-      router.back();
+      router.replace('/profile/account');
     } else if (result.needsVerification) {
       router.push({ pathname: '/profile/verify_otp', params: { userId: result.userId, type: 'verification' } });
     } else {
@@ -84,7 +84,7 @@ export default function Login() {
           {errors.password && <HelperText type="error">{errors.password}</HelperText>}
 
           <Link href="/profile/reset_password" asChild>
-            <Button mode="text" style={styles.forgotButton}>Forgot Password?</Button>
+            <Button mode="text" style={styles.forgotButton} textColor="#0f172a">Forgot Password?</Button>
           </Link>
 
           <Button mode="contained" onPress={onSubmit} loading={loading} style={styles.button} contentStyle={styles.buttonContent} textColor="#fff">
@@ -95,7 +95,7 @@ export default function Login() {
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don't have an account?</Text>
           <Link href="/profile/register" asChild>
-            <Button mode="text">Register</Button>
+            <Button mode="text" textColor="#0f172a">Register</Button>
           </Link>
         </View>
       </ScrollView>

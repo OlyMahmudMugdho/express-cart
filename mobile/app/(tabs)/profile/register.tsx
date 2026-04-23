@@ -122,7 +122,7 @@ export default function Register() {
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account?</Text>
           <Link href="/profile/login" asChild>
-            <Button mode="text">Sign In</Button>
+            <Button mode="text" textColor="#0f172a">Sign In</Button>
           </Link>
         </View>
       </ScrollView>

@@ -26,6 +26,10 @@ export function useApi() {
       const res = await fetch(`${BASE}/products?${query.toString()}`);
       return res.json();
     },
+    async getCategories() {
+      const res = await fetch(`${BASE}/categories`);
+      return res.json();
+    },
     async getProduct(id: string) {
       const res = await fetch(`${BASE}/products/${id}`);
       return res.json();

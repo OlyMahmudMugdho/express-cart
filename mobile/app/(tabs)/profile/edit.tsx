@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, TextInput, Button, Snackbar, ActivityIndicator } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
@@ -10,6 +11,7 @@ import * as Haptics from 'expo-haptics';
 export default function EditProfile() {
   const router = useRouter();
   const api = useApi();
+  const insets = useSafeAreaInsets();
   const { user, updateUser, token, isLoading: authLoading } = useAuth();
   
   const [firstName, setFirstName] = useState(user?.firstName || '');
@@ -22,18 +24,15 @@ export default function EditProfile() {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarColor, setSnackbarColor] = useState('#0f172a');
 
-  // 1. Initial sync from context
   useEffect(() => {
     if (user) {
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
       setPhone(user.phone || '');
-      // If we already have user data from context, we can stop the initial "full screen" fetching
       setFetching(false);
     }
   }, [user]);
 
-  // 2. Refresh from API to get most recent data
   useEffect(() => {
     if (token && !authLoading) {
       fetchProfile();
@@ -43,13 +42,12 @@ export default function EditProfile() {
   const fetchProfile = async () => {
     try {
       const data = await api.getProfile();
-      console.log('Fetched profile data:', data);
       setFirstName(data.firstName || '');
       setLastName(data.lastName || '');
       setPhone(data.phone || '');
       updateUser(data);
     } catch (err) {
-      console.warn('Failed to fetch profile from API:', err);
+      console.warn('Failed to fetch profile:', err);
     } finally {
       setFetching(false);
     }
@@ -72,18 +70,13 @@ export default function EditProfile() {
       });
       
       await updateUser(updatedUser);
-      
-      // Success Haptic
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      
       setSnackbarMessage('Profile updated successfully');
       setSnackbarColor('#0f172a');
       setSnackbarVisible(true);
       setTimeout(() => router.replace('/profile/account'), 1500);
     } catch (err: any) {
-      // Error Haptic
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      
       setSnackbarMessage(err.message || 'Failed to update profile');
       setSnackbarColor('#ef4444');
       setSnackbarVisible(true);
@@ -106,7 +99,7 @@ export default function EditProfile() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#0f172a" />
         </TouchableOpacity>
@@ -126,8 +119,6 @@ export default function EditProfile() {
               outlineColor="#e2e8f0"
               activeOutlineColor="#0f172a"
               textColor="#0f172a"
-              placeholder="Enter first name"
-              placeholderTextColor="#94a3b8"
             />
           </View>
 
@@ -141,8 +132,6 @@ export default function EditProfile() {
               outlineColor="#e2e8f0"
               activeOutlineColor="#0f172a"
               textColor="#0f172a"
-              placeholder="Enter last name"
-              placeholderTextColor="#94a3b8"
             />
           </View>
 
@@ -156,8 +145,6 @@ export default function EditProfile() {
               outlineColor="#e2e8f0"
               activeOutlineColor="#0f172a"
               textColor="#0f172a"
-              placeholder="Enter phone number"
-              placeholderTextColor="#94a3b8"
               keyboardType="phone-pad"
             />
           </View>
@@ -204,94 +191,36 @@ export default function EditProfile() {
         duration={2500}
         style={[styles.snackbar, { backgroundColor: snackbarColor }]}
       >
-        <View style={styles.snackbarContent}>
-          <Ionicons 
-            name={snackbarColor === '#ef4444' ? "alert-circle" : "checkmark-circle"} 
-            size={20} 
-            color={snackbarColor === '#ef4444' ? "#fff" : "#4ade80"} 
-          />
-          <Text style={styles.snackbarText}>{snackbarMessage}</Text>
-        </View>
+        <Text style={styles.snackbarText}>{snackbarMessage}</Text>
       </Snackbar>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
+  container: { flex: 1, backgroundColor: '#f8fafc' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingBottom: 16,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
   },
-  backButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  form: {
-    gap: 12,
-  },
-  inputGroup: {
-    marginBottom: 4,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0f172a',
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: '#fff',
-  },
-  disabledInput: {
-    backgroundColor: '#f1f5f9',
-  },
-  helperText: {
-    fontSize: 12,
-    color: '#64748b',
-    marginTop: 4,
-  },
-  buttonContainer: {
-    gap: 10,
-    marginTop: 20,
-  },
-  saveButton: {
-    borderRadius: 10,
-  },
-  cancelButton: {
-    borderRadius: 10,
-    borderColor: '#64748b',
-  },
-  snackbar: {
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginBottom: 24,
-    elevation: 6,
-  },
-  snackbarContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  snackbarText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
-  },
+  backButton: { padding: 4 },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: '#0f172a' },
+  content: { flex: 1, padding: 20 },
+  form: { gap: 12 },
+  inputGroup: { marginBottom: 4 },
+  label: { fontSize: 14, fontWeight: '600', color: '#0f172a', marginBottom: 6 },
+  input: { backgroundColor: '#fff' },
+  disabledInput: { backgroundColor: '#f1f5f9' },
+  helperText: { fontSize: 12, color: '#64748b', marginTop: 4 },
+  buttonContainer: { gap: 10, marginTop: 20 },
+  saveButton: { borderRadius: 10 },
+  cancelButton: { borderRadius: 10, borderColor: '#64748b' },
+  snackbar: { borderRadius: 12, marginHorizontal: 16, marginBottom: 24 },
+  snackbarText: { color: '#fff', fontSize: 15, fontWeight: '600', textAlign: 'center' },
 });

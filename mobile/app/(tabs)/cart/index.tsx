@@ -62,6 +62,7 @@ const headerStyles = StyleSheet.create({
 export default function Cart() {
   const api = useApi();
   const auth = useAuth();
+  const isFocused = useIsFocused();
   const { token, user, isLoading: authLoading } = auth;
   const [authReady, setAuthReady] = useState(false);
   const [items, setItems] = useState<any[]>([]);

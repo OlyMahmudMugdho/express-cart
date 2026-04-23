@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   menuSection: {
-    marginBottom: 20,
+    marginBottom: 32, // Increased from 20 for better section separation
   },
   sectionTitle: {
     fontSize: 14,

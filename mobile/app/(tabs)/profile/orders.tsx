@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, RefreshControl, Image } from 'react-native';
-import { Text } from 'react-native-paper';
+import { View, FlatList, StyleSheet, RefreshControl, Image, TouchableOpacity } from 'react-native';
+import { Text, ActivityIndicator } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { useIsFocused } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useApi } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -25,26 +30,21 @@ interface Order {
 export default function Orders() {
   const api = useApi();
   const { token } = useAuth();
+  const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchOrders = useCallback(async () => {
-    console.log('=== fetchOrders START ===');
-    console.log('token:', token);
     if (!token) {
-      console.log('No token, setting empty orders');
       setLoading(false);
       setOrders([]);
       return;
     }
     try {
-      console.log('Calling api.getOrders...');
       const res = await api.getOrders();
-      console.log('Got response, type:', typeof res, 'isArray:', Array.isArray(res));
-      console.log('Response:', JSON.stringify(res));
-      
-      // Handle various response formats
       let ordersArray = [];
       if (Array.isArray(res)) {
         ordersArray = res;
@@ -55,20 +55,16 @@ export default function Orders() {
       } else {
         ordersArray = [];
       }
-      
-      console.log('Orders array to set:', ordersArray.length);
       setOrders(ordersArray);
     } catch (err) {
       console.warn('Orders error:', err);
       setOrders([]);
     } finally {
-      console.log('=== fetchOrders END ===');
       setLoading(false);
     }
   }, [token]);
 
   useEffect(() => {
-    console.log('Orders useEffect, token:', !!token);
     fetchOrders();
   }, [fetchOrders]);
 
@@ -96,8 +92,8 @@ export default function Orders() {
 
   if (loading) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>Loading...</Text>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#0f172a" />
       </View>
     );
   }
@@ -111,58 +107,65 @@ export default function Orders() {
     );
   }
 
-  if (!orders || orders.length === 0) {
-    return (
-      <View style={styles.emptyContainer}>
-        <View style={styles.emptyIcon}>
-          <Text style={styles.emptyIconText}>📦</Text>
-        </View>
-        <Text style={styles.emptyTitle}>No orders yet</Text>
-        <Text style={styles.emptySubtitle}>Your orders will appear here</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <FlatList
-        data={orders}
-        keyExtractor={(item) => item.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <View style={styles.orderCard}>
-            <View style={styles.orderHeader}>
-              <View>
-                <Text style={styles.orderId}>Order #{item.id.slice(0, 8)}</Text>
-                <Text style={styles.orderDate}>{new Date(item.createdAt).toLocaleDateString()}</Text>
-              </View>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
-                <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
-                  {item.status}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.orderItems}>
-              {item.items?.slice(0, 2).map((orderItem: OrderItem) => (
-                <View key={orderItem.id} style={styles.orderItem}>
-                  <Text style={styles.orderItemName} numberOfLines={1}>
-                    {orderItem.product?.name}
-                  </Text>
-                  <Text style={styles.orderItemQty}>x{orderItem.quantity}</Text>
-                </View>
-              ))}
-              {item.items?.length > 2 && (
-                <Text style={styles.moreItems}>+{item.items.length - 2} more items</Text>
-              )}
-            </View>
-            <View style={styles.orderFooter}>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>${Number(item.total).toFixed(2)}</Text>
-            </View>
+      {isFocused && <StatusBar style="dark" />}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#0f172a" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Order History</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      {orders.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <View style={styles.emptyIcon}>
+            <Text style={styles.emptyIconText}>📦</Text>
           </View>
-        )}
-      />
+          <Text style={styles.emptyTitle}>No orders yet</Text>
+          <Text style={styles.emptySubtitle}>Your orders will appear here</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={orders}
+          keyExtractor={(item) => item.id}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => (
+            <View style={styles.orderCard}>
+              <View style={styles.orderHeader}>
+                <View>
+                  <Text style={styles.orderId}>Order #{item.id.slice(0, 8)}</Text>
+                  <Text style={styles.orderDate}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+                </View>
+                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
+                  <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+                    {item.status}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.orderItems}>
+                {item.items?.slice(0, 2).map((orderItem: OrderItem) => (
+                  <View key={orderItem.id} style={styles.orderItem}>
+                    <Text style={styles.orderItemName} numberOfLines={1}>
+                      {orderItem.product?.name}
+                    </Text>
+                    <Text style={styles.orderItemQty}>x{orderItem.quantity}</Text>
+                  </View>
+                ))}
+                {item.items?.length > 2 && (
+                  <Text style={styles.moreItems}>+{item.items.length - 2} more items</Text>
+                )}
+              </View>
+              <View style={styles.orderFooter}>
+                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalValue}>${Number(item.total).toFixed(2)}</Text>
+              </View>
+            </View>
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -172,6 +175,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
   listContent: {
     padding: 16,
   },
@@ -180,6 +201,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
   orderHeader: {
     flexDirection: 'row',

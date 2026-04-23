@@ -43,10 +43,20 @@ export default function Navbar() {
       fetchCart();
     }
 
+    const handleCartUpdate = () => {
+      fetchCart();
+      setIsCartOpen(true);
+    };
+
+    window.addEventListener('cart-updated', handleCartUpdate);
+
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     handleResize();
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('cart-updated', handleCartUpdate);
+    };
   }, []);
 
   const fetchCart = async () => {

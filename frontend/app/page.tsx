@@ -74,10 +74,7 @@ export default function HomePage() {
 
       if (res.ok) {
         message.success('Added to cart');
-        // We might want a global way to refresh the navbar cart, 
-        // but for now, the user can open it manually.
-        // In a real app, we'd use a Context or Redux.
-        window.dispatchEvent(new Event('storage')); // Simple hack to trigger refresh if we listened for it
+        window.dispatchEvent(new Event('cart-updated'));
       } else {
         const error = await res.json();
         message.error(error.message || 'Failed to add to cart');

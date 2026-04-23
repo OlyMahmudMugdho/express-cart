@@ -46,6 +46,7 @@ function ProductDetailsContent() {
       });
       if (res.ok) {
         message.success('Added to cart');
+        window.dispatchEvent(new Event('cart-updated'));
       } else {
         message.error('Failed to add to cart');
       }

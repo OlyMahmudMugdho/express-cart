@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Typography, Avatar, Dropdown, Space, Breadcrumb, theme, MenuProps, Divider, Drawer, Badge } from 'antd';
+import React, { useState } from 'react';
+import { Layout, Menu, Button, Typography, Avatar, Dropdown, Space, Breadcrumb, theme, MenuProps, Drawer, Badge } from 'antd';
 import {
   DashboardOutlined,
   ShoppingOutlined,
@@ -27,7 +27,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const {
-    token: { colorBgContainer, borderRadiusLG },
+    token: { colorBgContainer },
   } = theme.useToken();
 
   const menuItems: MenuProps['items'] = [
@@ -184,9 +184,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </Drawer>
 
       <Layout 
-        className="main-layout" 
+        className={`main-layout ${collapsed ? 'collapsed' : 'expanded'}`}
         style={{ 
-          marginLeft: typeof window !== 'undefined' && window.innerWidth > 992 ? (collapsed ? 80 : 260) : 0,
           transition: 'all 0.2s'
         }}
       >

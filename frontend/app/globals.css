@@ -70,11 +70,17 @@ body {
   }
 }
 
-@media (min-width: 993px) {
+@media (min-width: 992px) {
   .mobile-trigger {
     display: none !important;
   }
   .desktop-sider {
     display: block !important;
+  }
+  .main-layout.expanded {
+    margin-left: 260px;
+  }
+  .main-layout.collapsed {
+    margin-left: 80px;
   }
 }

@@ -117,6 +117,32 @@ export class ProductsService {
     if (data.name && !data.slug) {
       data.slug = generateSlug(data.name);
     }
+
+    if (data.images) {
+      const existingImages = product.images || [];
+      const newImagesData = data.images;
+
+      // Identify images to delete (those in existingImages but not in newImagesData by URL)
+      const newUrls = new Set(newImagesData.map(img => img.url));
+      const imagesToDelete = existingImages.filter(img => !newUrls.has(img.url));
+      
+      if (imagesToDelete.length > 0) {
+        await this.imageRepo.remove(imagesToDelete);
+      }
+
+      // Map new images to remaining existing ones or create new ones
+      const imagesToSave = newImagesData.map((newImg) => {
+        const existing = existingImages.find((ei) => ei.url === newImg.url);
+        if (existing) {
+          return Object.assign(existing, newImg);
+        }
+        return this.imageRepo.create({ ...newImg, productId: id });
+      });
+
+      product.images = imagesToSave;
+      delete data.images;
+    }
+
     Object.assign(product, data);
     return this.productRepo.save(product);
   }

@@ -79,4 +79,3 @@ FROM (VALUES
 JOIN products p ON p.slug = v.productSlug
 WHERE NOT EXISTS (SELECT 1 FROM product_images WHERE url = v.url);
 
-\echo 'CockroachDB seeded successfully!'

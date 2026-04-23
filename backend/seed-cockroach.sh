@@ -21,9 +21,26 @@ echo "🔗 URL: $(echo $DATABASE_URL | sed -e 's|:.*@|:****@|')"
 # -v ON_ERROR_STOP=1 ensures the script stops if any error occurs
 if command -v psql >/dev/null 2>&1; then
   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$(dirname "$0")/seed-cockroach.sql"
+elif command -v node >/dev/null 2>&1; then
+  echo "⚠️ psql not found locally. Running via Node.js 'pg' client..."
+  node -e "
+    const fs = require('fs');
+    const path = require('path');
+    const { Client } = require('pg');
+    const sqlPath = path.resolve('$(dirname $0)', 'seed-cockroach.sql');
+    const sql = fs.readFileSync(sqlPath, 'utf8');
+    const client = new Client({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    });
+    client.connect()
+      .then(() => client.query(sql))
+      .then(() => client.end())
+      .catch(err => { console.error(err); process.exit(1); });
+  "
 else
-  echo "⚠️ psql not found locally. Trying via Docker container 'express-cart-db'..."
-  docker exec -i express-cart-db psql "$DATABASE_URL" -v ON_ERROR_STOP=1 < "$(dirname "$0")/seed-cockroach.sql"
+  echo "❌ Error: Neither psql nor node is available."
+  exit 1
 fi
 
 if [ $? -eq 0 ]; then

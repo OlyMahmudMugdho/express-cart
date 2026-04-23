@@ -36,6 +36,7 @@ class Environment {
   STRIPE_SECRET_KEY: string;
 
   @IsString()
+  @IsOptional()
   STRIPE_WEBHOOK_SECRET: string;
 
   @IsString()

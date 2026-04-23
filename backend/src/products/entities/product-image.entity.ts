@@ -12,7 +12,7 @@ export class ProductImage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   url: string;
 
   @Column({ nullable: true })

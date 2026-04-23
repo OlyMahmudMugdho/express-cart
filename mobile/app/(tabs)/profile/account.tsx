@@ -7,6 +7,7 @@ import { useApi } from '../../utils/api';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import { useIsFocused } from '@react-navigation/native';
 
 interface MenuItemProps {
   icon: string;
@@ -39,6 +40,7 @@ export default function Account() {
   const router = useRouter();
   const [ordersCount, setOrdersCount] = useState(0);
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     if (token) {
@@ -66,7 +68,7 @@ export default function Account() {
   if (!user || !token) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <StatusBar style="dark" />
+        {isFocused && <StatusBar style="dark" />}
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <View style={styles.iconContainer}>
@@ -108,7 +110,7 @@ export default function Account() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar style="dark" />
+      {isFocused && <StatusBar style="dark" />}
       <ScrollView 
         style={{ flex: 1 }}
         contentContainerStyle={styles.contentContainer}

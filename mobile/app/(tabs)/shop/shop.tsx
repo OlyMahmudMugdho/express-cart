@@ -57,7 +57,7 @@ export default function Products() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar style="dark" />
+      {isFocused && <StatusBar style="dark" />}
       <Searchbar
         placeholder="Search products..."
         placeholderTextColor="#94a3b8"

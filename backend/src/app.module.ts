@@ -21,18 +21,35 @@ import { DashboardModule } from './dashboard/dashboard.module';
       rootPath: join(__dirname, '..', 'public'),
       exclude: ['/api*'],
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: process.env.DATABASE_URL,
-      host: process.env.DATABASE_HOST || 'localhost',
-      port: parseInt(process.env.DATABASE_PORT || '5432', 10),
-      username: process.env.DATABASE_USER || 'expresscart',
-      password: process.env.DATABASE_PASSWORD || 'expresscart_secret',
-      database: process.env.DATABASE_NAME || 'expresscart',
-      autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== 'production',
-      ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
-    }),
+    TypeOrmModule.forRoot(
+      process.env.DATABASE_URL
+        ? {
+            type: 'postgres',
+            url: process.env.DATABASE_URL,
+            autoLoadEntities: true,
+            synchronize: false,
+            migrations: ['dist/migrations/*.js'],
+            migrationsRun: true,
+            ssl: {
+              rejectUnauthorized: false,
+            },
+            extra: {
+              connectionTimeoutMillis: 30000,
+            },
+          }
+        : {
+            type: 'postgres',
+            host: process.env.DATABASE_HOST || 'localhost',
+            port: parseInt(process.env.DATABASE_PORT || '5432', 10),
+            username: process.env.DATABASE_USER || 'expresscart',
+            password: process.env.DATABASE_PASSWORD || 'expresscart_secret',
+            database: process.env.DATABASE_NAME || 'expresscart',
+            autoLoadEntities: true,
+            synchronize: false,
+            migrations: ['dist/migrations/*.js'],
+            migrationsRun: true,
+          },
+    ),
     AuthModule,
     UsersModule,
     ProductsModule,

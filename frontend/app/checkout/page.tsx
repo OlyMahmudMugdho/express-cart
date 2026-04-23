@@ -1,13 +1,41 @@
 'use client';
+
 import { BASE_URI } from '@/constants/api';
-
 import React, { useEffect, useState } from 'react';
-import { Layout, Button, Typography, message, Spin, Card, Divider, Radio, Space, Form, Input } from 'antd';
+import { 
+  Layout, 
+  Button, 
+  Typography, 
+  message, 
+  Spin, 
+  Card, 
+  Divider, 
+  Radio, 
+  Space, 
+  Form, 
+  Input, 
+  Row, 
+  Col, 
+  Breadcrumb,
+  Badge
+} from 'antd';
 import Navbar from '@/components/Navbar';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { 
+  MapPin, 
+  CreditCard, 
+  Truck, 
+  ShieldCheck, 
+  ChevronRight, 
+  ArrowLeft,
+  Plus,
+  ShoppingBag,
+  Info
+} from 'lucide-react';
 
-const { Content } = Layout;
-const { Title, Text } = Typography;
+const { Content, Footer } = Layout;
+const { Title, Text, Paragraph } = Typography;
 
 interface AddressForm {
   label: string;
@@ -31,13 +59,21 @@ export default function CheckoutPage() {
   const router = useRouter();
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login?redirect=/checkout');
+      return;
+    }
+
     const fetchData = async () => {
-      const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+      const headers = { 'Authorization': `Bearer ${token}` };
       try {
         const [checkRes, addrRes] = await Promise.all([
           fetch(`${BASE_URI}/checkout/initiate`, { headers }),
           fetch(`${BASE_URI}/users/addresses`, { headers })
         ]);
+        
+        if (!checkRes.ok) throw new Error('Checkout failed');
         
         const cData = await checkRes.json();
         const aData = await addrRes.json();
@@ -49,17 +85,16 @@ export default function CheckoutPage() {
           setSelectedAddressId(def.id);
         }
       } catch (e) {
-        message.error('Failed to load checkout data');
+        message.error('Cart empty or session expired');
+        router.push('/products');
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [router]);
 
   const placeOrder = async (values?: AddressForm) => {
-    console.log('placeOrder called, paymentMethod:', paymentMethod, 'selectedAddressId:', selectedAddressId);
-    
     if (!selectedAddressId && !showNewAddressForm) {
       message.warning('Please select a shipping address');
       return;
@@ -71,7 +106,6 @@ export default function CheckoutPage() {
         paymentMethod,
         notes: paymentMethod === 'cod' ? 'Cash on Delivery' : 'Card Payment',
       };
-      console.log('Request body:', requestBody);
       
       if (showNewAddressForm && values) {
         requestBody.newAddress = {
@@ -96,190 +130,337 @@ export default function CheckoutPage() {
         body: JSON.stringify(requestBody),
       });
       
-      console.log('Response status:', res.status);
-      
-      let data: any = {};
-      try {
-        data = await res.json();
-        console.log('Response data:', JSON.stringify(data, null, 2));
-        if (data.checkoutSessionUrl) {
-          console.log('=== STRIPE CHECKOUT URL ===');
-          console.log(data.checkoutSessionUrl);
-          console.log('==============================');
-        }
-      } catch (err) {
-        console.log('Failed to parse response');
-      }
+      const data = await res.json();
       
       if (res.ok || res.status === 201) {
-        console.log('Current URL:', window.location.href);
-        console.log('Redirecting to /profile');
-        
         if (data.checkoutSessionUrl) {
-          console.log('=== STRIPE CHECKOUT URL ===');
-          console.log(data.checkoutSessionUrl);
-          console.log('==============================');
-          message.success('Redirecting to payment...');
+          message.success('Redirecting to secure payment...');
           setTimeout(() => {
             window.location.href = data.checkoutSessionUrl;
-          }, 1500);
+          }, 1000);
         } else {
           message.success('Order placed successfully!');
+          window.dispatchEvent(new Event('cart-updated'));
           setTimeout(() => {
-            console.log('Now pushing to profile...');
             router.push('/profile');
           }, 1500);
         }
       } else {
         message.error(data?.message || 'Failed to place order');
         setPlacingOrder(false);
-        return;
       }
     } catch (e: any) {
       console.error('Order error:', e);
-      message.error(e.message || 'An error occurred');
+      message.error('An error occurred. Please try again.');
+      setPlacingOrder(false);
     }
-    setPlacingOrder(false);
   };
 
-  const handleSubmit = async (values: AddressForm) => {
-    await placeOrder(values);
-  };
-
-  if (loading) return <Spin fullscreen />;
-  if (!checkoutData) return <div>Cart empty or checkout failed</div>;
+  if (loading) return <Spin fullscreen size="large" />;
+  if (!checkoutData) return null;
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#f8fafc' }}>
       <Navbar />
-      <Content style={{ padding: '40px 16px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-        <Title level={2}>Checkout</Title>
-        
-        <Card title="Shipping Address" style={{ marginBottom: '24px' }}>
-          {addresses.length > 0 && !showNewAddressForm && (
-            <Radio.Group 
-              onChange={e => setSelectedAddressId(e.target.value)} 
-              value={selectedAddressId}
-              style={{ width: '100%' }}
-            >
-              <Space direction="vertical" style={{ width: '100%' }}>
-                {addresses.map(addr => (
-                  <Radio key={addr.id} value={addr.id} style={{ width: '100%', padding: '12px', border: '1px solid #f0f0f0', borderRadius: '8px' }}>
-                    <div style={{ display: 'inline-block', marginLeft: '8px' }}>
-                      <Text strong>{addr.street}</Text>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
-                        {addr.city}, {addr.state} {addr.postalCode}, {addr.country}
-                      </div>
-                    </div>
-                  </Radio>
-                ))}
-              </Space>
-            </Radio.Group>
-          )}
-          
-          {showNewAddressForm ? (
-            <Form form={form} layout="vertical" onFinish={handleSubmit}>
-              <Form.Item name="label" label="Label" rules={[{ required: true, message: 'Please enter a label' }]}>
-                <Input placeholder="e.g., Home, Office" />
-              </Form.Item>
-              <Form.Item name="street" label="Street Address" rules={[{ required: true, message: 'Please enter street address' }]}>
-                <Input placeholder="Street address" />
-              </Form.Item>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Form.Item name="city" label="City" rules={[{ required: true, message: 'Required' }]}>
-                  <Input placeholder="City" />
-                </Form.Item>
-                <Form.Item name="state" label="State" rules={[{ required: true, message: 'Required' }]}>
-                  <Input placeholder="State" />
-                </Form.Item>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Form.Item name="postalCode" label="Postal Code" rules={[{ required: true, message: 'Required' }]}>
-                  <Input placeholder="Postal code" />
-                </Form.Item>
-                <Form.Item name="country" label="Country" rules={[{ required: true, message: 'Required' }]}>
-                  <Input placeholder="Country" />
-                </Form.Item>
-              </div>
-              <Form.Item name="phone" label="Phone (optional)">
-                <Input placeholder="Phone number" />
-              </Form.Item>
-              <Space>
-                <Button type="primary" htmlType="submit" loading={placingOrder}>
-                  Save & Place Order
-                </Button>
-                <Button onClick={() => setShowNewAddressForm(false)}>
-                  Cancel
-                </Button>
-              </Space>
-            </Form>
-          ) : (
-            <div style={{ marginTop: '16px' }}>
-              <Button onClick={() => setShowNewAddressForm(true)}>
-                + Add New Address
-              </Button>
-            </div>
-          )}
-        </Card>
-
-        <Card title="Payment Method" style={{ marginBottom: '24px' }}>
-          <Radio.Group 
-            onChange={e => setPaymentMethod(e.target.value)} 
-            value={paymentMethod}
-            style={{ width: '100%' }}
+      <Content style={{ padding: '40px 24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+        <div style={{ marginBottom: '32px' }}>
+          <Button 
+            type="link" 
+            icon={<ArrowLeft size={16} />} 
+            onClick={() => router.push('/products')}
+            style={{ padding: 0, color: '#64748b', display: 'flex', alignItems: 'center', marginBottom: '24px' }}
           >
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Radio value="cod" style={{ width: '100%', padding: '16px', border: '1px solid #f0f0f0', borderRadius: '8px' }}>
-                <div style={{ marginLeft: '8px' }}>
-                  <Text strong>Cash on Delivery</Text>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>
-                    Pay when you receive your order
-                  </div>
-                </div>
-              </Radio>
-              <Radio value="stripe" style={{ width: '100%', padding: '16px', border: '1px solid #f0f0f0', borderRadius: '8px' }}>
-                <div style={{ marginLeft: '8px' }}>
-                  <Text strong>Card Payment</Text>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>
-                    Pay securely with your debit/credit card
-                  </div>
-                </div>
-              </Radio>
-            </Space>
-          </Radio.Group>
-        </Card>
+            Back to Shop
+          </Button>
+          <Breadcrumb 
+            items={[
+              { title: <Link href="/">Home</Link> },
+              { title: <Link href="/products">Shop</Link> },
+              { title: <Text strong>Checkout</Text> }
+            ]} 
+          />
+        </div>
 
-        <Card title="Order Summary">
-            {checkoutData.items.map((item: any) => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <Text>{item.product.name} x {item.quantity}</Text>
-                    <Text>${item.total}</Text>
+        <Row gutter={[48, 48]}>
+          <Col xs={24} lg={15}>
+            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+              {/* Shipping Address Section */}
+              <section>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', gap: '12px' }}>
+                  <div style={{ background: '#1e293b', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>1</div>
+                  <Title level={4} style={{ margin: 0 }}>Shipping Information</Title>
                 </div>
-            ))}
-            <Divider />
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <Text>Payment</Text>
-                <Text strong>{paymentMethod === 'cod' ? 'Cash on Delivery' : 'Card Payment'}</Text>
+                
+                <Card style={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                  {addresses.length > 0 && !showNewAddressForm && (
+                    <Radio.Group 
+                      onChange={e => setSelectedAddressId(e.target.value)} 
+                      value={selectedAddressId}
+                      style={{ width: '100%' }}
+                    >
+                      <Row gutter={[16, 16]}>
+                        {addresses.map(addr => (
+                          <Col span={24} key={addr.id}>
+                            <Radio.Button 
+                              value={addr.id} 
+                              style={{ 
+                                width: '100%', 
+                                height: 'auto', 
+                                padding: '16px', 
+                                borderRadius: '8px',
+                                border: selectedAddressId === addr.id ? '2px solid #1677ff' : '1px solid #f1f5f9',
+                                background: selectedAddressId === addr.id ? '#f0f7ff' : '#fff',
+                                display: 'flex',
+                                alignItems: 'center'
+                              }}
+                            >
+                              <div style={{ marginLeft: '12px' }}>
+                                <Text strong style={{ display: 'block', fontSize: '14px', textTransform: 'capitalize' }}>{addr.label} Address</Text>
+                                <Text type="secondary" style={{ fontSize: '13px' }}>
+                                  {addr.street}, {addr.city}, {addr.state} {addr.postalCode}, {addr.country}
+                                </Text>
+                              </div>
+                            </Radio.Button>
+                          </Col>
+                        ))}
+                        <Col span={24}>
+                          <Button 
+                            type="dashed" 
+                            block 
+                            size="large" 
+                            icon={<Plus size={16} />} 
+                            onClick={() => setShowNewAddressForm(true)}
+                            style={{ height: '56px', borderRadius: '8px' }}
+                          >
+                            Add New Address
+                          </Button>
+                        </Col>
+                      </Row>
+                    </Radio.Group>
+                  )}
+                  
+                  {(showNewAddressForm || addresses.length === 0) && (
+                    <Form form={form} layout="vertical" onFinish={placeOrder} size="large">
+                      <Row gutter={16}>
+                        <Col span={24}>
+                          <Form.Item name="label" label="Address Label" rules={[{ required: true }]}>
+                            <Input placeholder="Home, Office, etc." />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item name="street" label="Street Address" rules={[{ required: true }]}>
+                            <Input placeholder="123 Modern Avenue" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item name="city" label="City" rules={[{ required: true }]}>
+                            <Input placeholder="City" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item name="state" label="State / Province" rules={[{ required: true }]}>
+                            <Input placeholder="State" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item name="postalCode" label="Postal Code" rules={[{ required: true }]}>
+                            <Input placeholder="Postal code" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item name="country" label="Country" rules={[{ required: true }]}>
+                            <Input placeholder="Country" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                      <Space>
+                        {addresses.length > 0 && (
+                          <Button onClick={() => setShowNewAddressForm(false)}>Cancel</Button>
+                        )}
+                        <Text type="secondary" style={{ fontSize: '12px' }}>Fill all details to proceed</Text>
+                      </Space>
+                    </Form>
+                  )}
+                </Card>
+              </section>
+
+              {/* Payment Method Section */}
+              <section>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', gap: '12px' }}>
+                  <div style={{ background: '#1e293b', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>2</div>
+                  <Title level={4} style={{ margin: 0 }}>Payment Method</Title>
+                </div>
+                
+                <Card style={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                  <Radio.Group 
+                    onChange={e => setPaymentMethod(e.target.value)} 
+                    value={paymentMethod}
+                    style={{ width: '100%' }}
+                  >
+                    <Row gutter={[16, 16]}>
+                      <Col xs={24} md={12}>
+                        <Radio.Button 
+                          value="cod" 
+                          style={{ 
+                            width: '100%', 
+                            height: 'auto', 
+                            padding: '24px', 
+                            borderRadius: '8px',
+                            border: paymentMethod === 'cod' ? '2px solid #1677ff' : '1px solid #f1f5f9',
+                            background: paymentMethod === 'cod' ? '#f0f7ff' : '#fff',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center'
+                          }}
+                        >
+                          <Truck size={24} style={{ marginBottom: '8px', color: paymentMethod === 'cod' ? '#1677ff' : '#64748b' }} />
+                          <Text strong style={{ display: 'block' }}>Cash on Delivery</Text>
+                          <Text type="secondary" style={{ fontSize: '12px' }}>Pay when you receive</Text>
+                        </Radio.Button>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Radio.Button 
+                          value="stripe" 
+                          style={{ 
+                            width: '100%', 
+                            height: 'auto', 
+                            padding: '24px', 
+                            borderRadius: '8px',
+                            border: paymentMethod === 'stripe' ? '2px solid #1677ff' : '1px solid #f1f5f9',
+                            background: paymentMethod === 'stripe' ? '#f0f7ff' : '#fff',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center'
+                          }}
+                        >
+                          <CreditCard size={24} style={{ marginBottom: '8px', color: paymentMethod === 'stripe' ? '#1677ff' : '#64748b' }} />
+                          <Text strong style={{ display: 'block' }}>Card Payment</Text>
+                          <Text type="secondary" style={{ fontSize: '12px' }}>Secure online payment</Text>
+                        </Radio.Button>
+                      </Col>
+                    </Row>
+                  </Radio.Group>
+                </Card>
+              </section>
+            </Space>
+          </Col>
+
+          {/* Order Summary Sidebar */}
+          <Col xs={24} lg={9}>
+            <div style={{ position: 'sticky', top: '100px' }}>
+              <Title level={4} style={{ marginBottom: '20px' }}>Order Summary</Title>
+              <Card style={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '24px' }}>
+                  {checkoutData.items.map((item: any) => (
+                    <div key={item.id} style={{ display: 'flex', gap: '16px', marginBottom: '16px', alignItems: 'center' }}>
+                      <img 
+                        src={item.product?.images?.[0]?.url || 'https://via.placeholder.com/60'} 
+                        style={{ width: '60px', height: '60px', borderRadius: '4px', objectFit: 'cover' }} 
+                      />
+                      <div style={{ flex: 1 }}>
+                        <Text strong style={{ display: 'block' }}>{item.product.name}</Text>
+                        <Text type="secondary" style={{ fontSize: '13px' }}>Qty: {item.quantity}</Text>
+                      </div>
+                      <Text strong>${item.total}</Text>
+                    </div>
+                  ))}
+                </div>
+                
+                <Divider style={{ margin: '0 0 24px 0' }} />
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text type="secondary">Subtotal</Text>
+                    <Text strong>${checkoutData.total}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text type="secondary">Shipping</Text>
+                    <Text type="success" strong>Complimentary</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
+                    <Title level={4} style={{ margin: 0 }}>Total</Title>
+                    <Title level={4} style={{ margin: 0 }}>${checkoutData.total}</Title>
+                  </div>
+                </div>
+
+                <Divider style={{ margin: '24px 0' }} />
+                
+                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
+                  <Space align="start" size="middle">
+                    <ShieldCheck size={20} style={{ color: '#1677ff', marginTop: '2px' }} />
+                    <Text style={{ fontSize: '13px', color: '#475569' }}>
+                      Your information is protected with industry-standard encryption.
+                    </Text>
+                  </Space>
+                </div>
+
+                {!showNewAddressForm ? (
+                  <Button 
+                    type="primary" 
+                    size="large" 
+                    block 
+                    className="btn-elegant"
+                    style={{ height: '56px', borderRadius: '4px', fontWeight: 600, fontSize: '16px' }} 
+                    onClick={() => placeOrder()}
+                    loading={placingOrder}
+                    disabled={!selectedAddressId}
+                  >
+                    {paymentMethod === 'cod' ? 'Complete Purchase' : 'Pay with Secure Checkout'}
+                  </Button>
+                ) : (
+                  <Button 
+                    type="primary" 
+                    size="large" 
+                    block 
+                    className="btn-elegant"
+                    style={{ height: '56px', borderRadius: '4px', fontWeight: 600, fontSize: '16px' }} 
+                    onClick={() => form.submit()}
+                    loading={placingOrder}
+                  >
+                    Confirm & Proceed
+                  </Button>
+                )}
+                
+                <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                    Tax calculated at checkout where applicable.
+                  </Text>
+                </div>
+              </Card>
+
+              <div style={{ marginTop: '24px', textAlign: 'center' }}>
+                <Space size="middle">
+                  <CreditCard size={20} style={{ color: '#94a3b8' }} />
+                  <Truck size={20} style={{ color: '#94a3b8' }} />
+                  <Info size={20} style={{ color: '#94a3b8' }} />
+                </Space>
+              </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px' }}>
-                <Title level={4}>Total</Title>
-                <Title level={4}>${checkoutData.total}</Title>
-            </div>
-            {!showNewAddressForm && (
-              <Button 
-                type="primary" 
-                size="large" 
-                block 
-                style={{ marginTop: '24px', height: '50px' }} 
-                onClick={() => placeOrder()}
-                loading={placingOrder}
-                disabled={!selectedAddressId}
-              >
-                {paymentMethod === 'cod' ? 'Confirm Order' : 'Pay & Place Order'}
-              </Button>
-            )}
-        </Card>
+          </Col>
+        </Row>
       </Content>
+
+      <Footer style={{ background: '#fff', color: '#94a3b8', padding: '60px 24px 40px', borderTop: '1px solid #f1f5f9', marginTop: '40px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
+          <Text style={{ color: '#94a3b8', fontSize: '14px' }}>© 2026 ExpressCart Inc. Secure & Encrypted.</Text>
+        </div>
+      </Footer>
+      <style jsx global>{`
+        .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+          z-index: 1;
+          color: #1677ff;
+          background: #f0f7ff;
+          border-color: #1677ff;
+        }
+        .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled)::before {
+          background-color: #1677ff;
+        }
+        .ant-radio-button-wrapper {
+          border-inline-start-width: 1px !important;
+        }
+      `}</style>
     </Layout>
   );
 }

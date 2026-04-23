@@ -62,7 +62,7 @@ export class CheckoutService {
   async initiateCheckout(userId: string, addressId?: string) {
     const cart = await this.cartRepo.findOne({
       where: { userId },
-      relations: ['items', 'items.product'],
+      relations: ['items', 'items.product', 'items.product.images'],
     });
     if (!cart || cart.items.length === 0) {
       throw new BadRequestException('Cart is empty');
@@ -99,7 +99,7 @@ export class CheckoutService {
     
     const cart = await this.cartRepo.findOne({
       where: { userId },
-      relations: ['items', 'items.product'],
+      relations: ['items', 'items.product', 'items.product.images'],
     });
     console.log('Cart found:', !!cart);
     console.log('Cart items:', cart?.items?.length);

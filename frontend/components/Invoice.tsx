@@ -14,6 +14,17 @@ export default function Invoice({ order }: InvoiceProps) {
   if (!order) return null;
 
   const columns = [
+    { 
+      title: 'Item', 
+      key: 'image', 
+      width: 80,
+      render: (_: any, record: any) => (
+        <img 
+          src={record.productImage || 'https://via.placeholder.com/50'} 
+          style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: '4px' }} 
+        />
+      )
+    },
     { title: 'Item Description', dataIndex: 'productName', key: 'productName' },
     { title: 'SKU', dataIndex: 'sku', key: 'sku' },
     { title: 'Price', dataIndex: 'price', key: 'price', align: 'right' as const, render: (p: any) => `$${Number(p).toFixed(2)}` },

@@ -60,11 +60,13 @@ export class DashboardService {
       this.productRepo.find({
         where: { stockQuantity: Between(0, 10) },
         take: 10,
-        order: { stockQuantity: 'ASC' }
+        order: { stockQuantity: 'ASC' },
+        relations: ['images']
       }),
       this.productRepo.find({
         order: { soldCount: 'DESC' },
-        take: 10
+        take: 10,
+        relations: ['images']
       }),
       // Status breakdown
       this.orderRepo.createQueryBuilder('order')

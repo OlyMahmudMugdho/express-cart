@@ -222,7 +222,7 @@ export default function Cart() {
       <FlatList
         data={items}
         keyExtractor={(i) => i.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0f172a" colors={["#0f172a"]} />}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
           const product = item.product;

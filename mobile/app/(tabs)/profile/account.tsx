@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Text, Button, Divider } from 'react-native-paper';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { Text, Button } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { useApi } from '../../utils/api';
@@ -41,18 +41,11 @@ export default function Account() {
   const router = useRouter();
   const [ordersCount, setOrdersCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
 
-  useEffect(() => {
-    if (token) {
-      fetchOrdersCount();
-    } else if (!authLoading) {
-      setLoading(false);
-    }
-  }, [token, authLoading]);
-
-  const fetchOrdersCount = async () => {
+  const fetchOrdersCount = useCallback(async () => {
     try {
       const res = await api.getOrders();
       const orders = res.orders ?? res;
@@ -63,7 +56,22 @@ export default function Account() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
+
+  useEffect(() => {
+    if (token) {
+      fetchOrdersCount();
+    } else if (!authLoading) {
+      setLoading(false);
+    }
+  }, [token, authLoading, fetchOrdersCount]);
+
+  const onRefresh = useCallback(async () => {
+    if (!token) return;
+    setRefreshing(true);
+    await fetchOrdersCount();
+    setRefreshing(false);
+  }, [token, fetchOrdersCount]);
 
   const handleLogout = () => {
     signOut();
@@ -111,7 +119,7 @@ export default function Account() {
     </View>
   );
 
-  if (loading || authLoading) {
+  if (loading && !refreshing) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {isFocused && <StatusBar style="dark" />}
@@ -124,7 +132,14 @@ export default function Account() {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {isFocused && <StatusBar style="dark" />}
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={{ flex: 1 }} 
+          contentContainerStyle={styles.contentContainer} 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={() => {}} tintColor="#0f172a" />
+          }
+        >
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <Ionicons name="person" size={40} color="#fff" />
@@ -175,6 +190,9 @@ export default function Account() {
         style={{ flex: 1 }}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0f172a" colors={["#0f172a"]} />
+        }
       >
         <View style={styles.profileHeader}>
           <View style={styles.avatar}>
@@ -377,7 +395,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   menuSection: {
-    marginBottom: 24, // Reduced from 32
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 14,
@@ -428,7 +446,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   logoutButton: {
-    marginTop: 0, // Reduced from 8
+    marginTop: 0,
     borderColor: '#ef4444',
     borderRadius: 12,
   },

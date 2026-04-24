@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Image, Platform } from 'react-native';
-import { Text, Button, Card, Divider, Snackbar, RadioButton, TextInput } from 'react-native-paper';
+import { Text, Button, Card, Divider, RadioButton, TextInput } from 'react-native-paper';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -8,6 +8,7 @@ import { useApi } from '../../utils/api';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import Skeleton from '../../components/Skeleton';
+import Toast from '../../components/Toast';
 
 function SectionTitle({ title, icon }: { title: string; icon: string }) {
   return (
@@ -41,9 +42,9 @@ export default function Checkout() {
     isDefault: false
   });
 
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarColor, setSnackbarColor] = useState('#0f172a');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   useEffect(() => {
     fetchAddresses();
@@ -69,16 +70,16 @@ export default function Checkout() {
 
   const handlePlaceOrder = async () => {
     if (!showNewAddress && !selectedAddressId) {
-      setSnackbarMessage('Please select an address');
-      setSnackbarColor('#ef4444');
-      setSnackbarVisible(true);
+      setToastMessage('Please select an address');
+      setToastType('error');
+      setToastVisible(true);
       return;
     }
 
     if (showNewAddress && (!newAddress.street || !newAddress.city || !newAddress.country)) {
-      setSnackbarMessage('Please fill all required address fields');
-      setSnackbarColor('#ef4444');
-      setSnackbarVisible(true);
+      setToastMessage('Please fill all required address fields');
+      setToastType('error');
+      setToastVisible(true);
       return;
     }
 
@@ -104,9 +105,9 @@ export default function Checkout() {
         });
       }
     } catch (err: any) {
-      setSnackbarMessage(err.message || 'Failed to place order');
-      setSnackbarColor('#ef4444');
-      setSnackbarVisible(true);
+      setToastMessage(err.message || 'Failed to place order');
+      setToastType('error');
+      setToastVisible(true);
     } finally {
       setIsPlacingOrder(false);
     }
@@ -144,6 +145,14 @@ export default function Checkout() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#f8fafc' }} edges={['top', 'left', 'right']}>
       <StatusBar style="dark" />
+      
+      <Toast 
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onDismiss={() => setToastVisible(false)}
+      />
+
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#0f172a" />
@@ -210,6 +219,8 @@ export default function Checkout() {
                     value={newAddress.label}
                     onChangeText={(text) => updateNewAddress('label', text)}
                     style={styles.input}
+                    outlineColor="#e2e8f0"
+                    activeOutlineColor="#0f172a"
                   />
                   <TextInput
                     mode="outlined"
@@ -217,6 +228,8 @@ export default function Checkout() {
                     value={newAddress.street}
                     onChangeText={(text) => updateNewAddress('street', text)}
                     style={styles.input}
+                    outlineColor="#e2e8f0"
+                    activeOutlineColor="#0f172a"
                   />
                   <View style={styles.row}>
                     <TextInput
@@ -225,6 +238,8 @@ export default function Checkout() {
                       value={newAddress.city}
                       onChangeText={(text) => updateNewAddress('city', text)}
                       style={[styles.input, { flex: 1 }]}
+                      outlineColor="#e2e8f0"
+                      activeOutlineColor="#0f172a"
                     />
                     <TextInput
                       mode="outlined"
@@ -232,6 +247,8 @@ export default function Checkout() {
                       value={newAddress.state}
                       onChangeText={(text) => updateNewAddress('state', text)}
                       style={[styles.input, { flex: 1 }]}
+                      outlineColor="#e2e8f0"
+                      activeOutlineColor="#0f172a"
                     />
                   </View>
                   <View style={styles.row}>
@@ -241,6 +258,8 @@ export default function Checkout() {
                       value={newAddress.postalCode}
                       onChangeText={(text) => updateNewAddress('postalCode', text)}
                       style={[styles.input, { flex: 1 }]}
+                      outlineColor="#e2e8f0"
+                      activeOutlineColor="#0f172a"
                     />
                     <TextInput
                       mode="outlined"
@@ -248,6 +267,8 @@ export default function Checkout() {
                       value={newAddress.country}
                       onChangeText={(text) => updateNewAddress('country', text)}
                       style={[styles.input, { flex: 1 }]}
+                      outlineColor="#e2e8f0"
+                      activeOutlineColor="#0f172a"
                     />
                   </View>
                   <View style={styles.formButtons}>
@@ -328,15 +349,6 @@ export default function Checkout() {
           Confirm Order
         </Button>
       </View>
-
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        duration={3000}
-        style={[styles.snackbar, { backgroundColor: snackbarColor }]}
-      >
-        {snackbarMessage}
-      </Snackbar>
     </SafeAreaView>
   );
 }
@@ -354,18 +366,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#f1f5f9',
   },
   backButton: { padding: 4 },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: '#0f172a' },
+  headerTitle: { fontSize: 20, fontWeight: '800', color: '#0f172a' },
   card: {
-    borderRadius: 16,
+    borderRadius: 20,
     backgroundColor: '#fff',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowRadius: 20,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -380,8 +394,8 @@ const styles = StyleSheet.create({
   },
   addressItem: {
     flexDirection: 'row',
-    padding: 12,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 16,
     borderWidth: 1.5,
     borderColor: '#f1f5f9',
     marginBottom: 12,
@@ -392,28 +406,27 @@ const styles = StyleSheet.create({
   },
   addressRadioContainer: { justifyContent: 'center' },
   addressContent: { flex: 1, marginLeft: 8 },
-  addressLabel: { fontSize: 12, fontWeight: '700', color: '#64748b', textTransform: 'uppercase' },
-  addressStreet: { fontSize: 15, fontWeight: '600', color: '#0f172a', marginTop: 2 },
-  addressDetails: { fontSize: 13, color: '#64748b' },
-  addressCountry: { fontSize: 13, color: '#64748b' },
-  defaultBadge: { backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginTop: 4 },
-  defaultBadgeText: { fontSize: 10, fontWeight: '700', color: '#2563eb' },
-  addNewButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', borderStyle: 'dashed', gap: 8, marginTop: 4 },
-  addNewButtonText: { fontSize: 14, fontWeight: '600', color: '#0f172a' },
+  addressLabel: { fontSize: 11, fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 },
+  addressStreet: { fontSize: 15, fontWeight: '700', color: '#0f172a', marginTop: 2 },
+  addressDetails: { fontSize: 13, color: '#64748b', fontWeight: '500' },
+  addressCountry: { fontSize: 13, color: '#64748b', fontWeight: '500' },
+  defaultBadge: { backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, alignSelf: 'flex-start', marginTop: 4 },
+  defaultBadgeText: { fontSize: 10, fontWeight: '800', color: '#2563eb' },
+  addNewButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 14, borderRadius: 16, borderWidth: 1.5, borderColor: '#e2e8f0', borderStyle: 'dashed', gap: 8, marginTop: 4 },
+  addNewButtonText: { fontSize: 14, fontWeight: '700', color: '#0f172a' },
   newAddressForm: { gap: 4 },
-  input: { marginBottom: 8, backgroundColor: '#fff' },
+  input: { marginBottom: 12, backgroundColor: '#fff' },
   row: { flexDirection: 'row', gap: 12 },
   formButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 },
-  paymentOption: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 12, borderWidth: 1.5, borderColor: '#f1f5f9', marginBottom: 12 },
+  paymentOption: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, borderWidth: 1.5, borderColor: '#f1f5f9', marginBottom: 12 },
   paymentOptionSelected: { borderColor: '#0f172a', backgroundColor: '#f8fafc' },
-  paymentOptionTitle: { fontSize: 15, fontWeight: '600', color: '#0f172a' },
-  paymentOptionSubtitle: { fontSize: 12, color: '#64748b' },
+  paymentOptionTitle: { fontSize: 15, fontWeight: '700', color: '#0f172a' },
+  paymentOptionSubtitle: { fontSize: 12, color: '#64748b', fontWeight: '500' },
   divider: { marginVertical: 16, backgroundColor: '#f1f5f9' },
-  secureNote: { fontSize: 12, color: '#94a3b8', textAlign: 'center' },
-  footer: { padding: 16, paddingBottom: 12, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e2e8f0', position: 'absolute', bottom: 0, left: 0, right: 0 },
-  confirmButton: { borderRadius: 12, height: 48, justifyContent: 'center' },
+  secureNote: { fontSize: 12, color: '#94a3b8', textAlign: 'center', fontWeight: '500' },
+  footer: { padding: 20, paddingBottom: 24, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#f1f5f9', position: 'absolute', bottom: 0, left: 0, right: 0 },
+  confirmButton: { borderRadius: 16, height: 54, justifyContent: 'center' },
   waitingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: '#fff' },
   waitingTitle: { fontSize: 22, fontWeight: '800', color: '#0f172a', marginTop: 24 },
   waitingSubtitle: { fontSize: 16, color: '#64748b', textAlign: 'center', marginTop: 8, lineHeight: 24 },
-  snackbar: { borderRadius: 12, marginBottom: 80 },
 });

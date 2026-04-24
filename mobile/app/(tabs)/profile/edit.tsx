@@ -1,242 +1,195 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Text, TextInput, Button, Snackbar, ActivityIndicator } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
+import { Text, TextInput, Button, ActivityIndicator } from 'react-native-paper';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { useApi } from '../../utils/api';
-import * as Haptics from 'expo-haptics';
-import Skeleton from '../../components/Skeleton';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { useIsFocused } from '@react-navigation/native';
+import Toast from '../../components/Toast';
 
 export default function EditProfile() {
-  const router = useRouter();
+  const { user, updateProfile: updateAuthUser } = useAuth();
   const api = useApi();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
-  const isFocused = useIsFocused();
-  const { user, updateUser, token, isLoading: authLoading } = useAuth();
   
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phone, setPhone] = useState(user?.phone || '');
-  
   const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarColor, setSnackbarColor] = useState('#0f172a');
+  const [refreshing, setRefreshing] = useState(false);
+  
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
-  useEffect(() => {
-    if (user) {
-      setFirstName(user.firstName || '');
-      setLastName(user.lastName || '');
-      setPhone(user.phone || '');
-      setFetching(false);
-    }
-  }, [user]);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    // Profile data is already in context, but we could fetch it again here if needed
+    setRefreshing(false);
+  }, []);
 
-  useEffect(() => {
-    if (token && !authLoading) {
-      fetchProfile();
-    }
-  }, [token, authLoading]);
-
-  const fetchProfile = async () => {
-    try {
-      const data = await api.getProfile();
-      setFirstName(data.firstName || '');
-      setLastName(data.lastName || '');
-      setPhone(data.phone || '');
-      updateUser(data);
-    } catch (err) {
-      console.warn('Failed to fetch profile:', err);
-    } finally {
-      setFetching(false);
-    }
-  };
-
-  const handleSave = async () => {
+  const handleUpdate = async () => {
     if (!firstName.trim()) {
-      setSnackbarMessage('First name is required');
-      setSnackbarColor('#ef4444');
-      setSnackbarVisible(true);
+      setToastMessage('First name is required');
+      setToastType('error');
+      setToastVisible(true);
       return;
     }
 
     setLoading(true);
     try {
-      const updatedUser = await api.updateProfile({
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        phone: phone.trim(),
-      });
-      
-      await updateUser(updatedUser);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setSnackbarMessage('Profile updated successfully');
-      setSnackbarColor('#0f172a');
-      setSnackbarVisible(true);
-      setTimeout(() => router.replace('/profile/account'), 1500);
+      const res = await api.updateProfile({ firstName, lastName, phone });
+      updateAuthUser(res);
+      setToastMessage('Profile updated successfully');
+      setToastType('success');
+      setToastVisible(true);
+      setTimeout(() => router.back(), 1500);
     } catch (err: any) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setSnackbarMessage(err.message || 'Failed to update profile');
-      setSnackbarColor('#ef4444');
-      setSnackbarVisible(true);
+      setToastMessage(err.message || 'Failed to update profile');
+      setToastType('error');
+      setToastVisible(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    router.replace('/profile/account');
-  };
-
-  const EditSkeleton = () => (
-    <View style={styles.content}>
-      {[1, 2, 3, 4].map((i) => (
-        <View key={i} style={styles.inputGroup}>
-          <Skeleton width="30%" height={14} style={{ marginBottom: 8 }} />
-          <Skeleton width="100%" height={56} borderRadius={4} />
-        </View>
-      ))}
-      <View style={{ gap: 10, marginTop: 20 }}>
-        <Skeleton width="100%" height={48} borderRadius={10} />
-        <Skeleton width="100%" height={48} borderRadius={10} />
-      </View>
-    </View>
-  );
-
   return (
-    <View style={styles.container}>
-      {isFocused && <StatusBar style="dark" />}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f8fafc' }} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
+      
+      <Toast 
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onDismiss={() => setToastVisible(false)}
+      />
+
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#0f172a" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Profile</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      {fetching ? (
-        <EditSkeleton />
-      ) : (
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.form}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>First Name</Text>
-              <TextInput
-                mode="outlined"
-                value={firstName}
-                onChangeText={setFirstName}
-                style={styles.input}
-                outlineColor="#e2e8f0"
-                activeOutlineColor="#0f172a"
-                textColor="#0f172a"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Last Name</Text>
-              <TextInput
-                mode="outlined"
-                value={lastName}
-                onChangeText={setLastName}
-                style={styles.input}
-                outlineColor="#e2e8f0"
-                activeOutlineColor="#0f172a"
-                textColor="#0f172a"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Phone Number</Text>
-              <TextInput
-                mode="outlined"
-                value={phone}
-                onChangeText={setPhone}
-                style={styles.input}
-                outlineColor="#e2e8f0"
-                activeOutlineColor="#0f172a"
-                textColor="#0f172a"
-                keyboardType="phone-pad"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                mode="outlined"
-                value={user?.email || ''}
-                style={[styles.input, styles.disabledInput]}
-                outlineColor="#e2e8f0"
-                textColor="#64748b"
-                disabled
-              />
-              <Text style={styles.helperText}>Email cannot be changed</Text>
-            </View>
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <Button
-              mode="contained"
-              onPress={handleSave}
-              loading={loading}
-              style={styles.saveButton}
-              buttonColor="#0f172a"
-              textColor="#fff"
-            >
-              Save Changes
-            </Button>
-            <Button
-              mode="outlined"
-              onPress={handleCancel}
-              style={styles.cancelButton}
-              textColor="#64748b"
-            >
-              Cancel
-            </Button>
-          </View>
-        </ScrollView>
-      )}
-
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        duration={2500}
-        style={[styles.snackbar, { backgroundColor: snackbarColor }]}
+      <ScrollView 
+        style={styles.container} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0f172a" colors={["#0f172a"]} />
+        }
       >
-        <Text style={styles.snackbarText}>{snackbarMessage}</Text>
-      </Snackbar>
-    </View>
+        <View style={styles.form}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>First Name</Text>
+            <TextInput
+              mode="outlined"
+              placeholder="Enter your first name"
+              value={firstName}
+              onChangeText={setFirstName}
+              style={styles.input}
+              outlineColor="#e2e8f0"
+              activeOutlineColor="#0f172a"
+              contentStyle={styles.inputContent}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Last Name</Text>
+            <TextInput
+              mode="outlined"
+              placeholder="Enter your last name"
+              value={lastName}
+              onChangeText={setLastName}
+              style={styles.input}
+              outlineColor="#e2e8f0"
+              activeOutlineColor="#0f172a"
+              contentStyle={styles.inputContent}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              mode="outlined"
+              placeholder="Enter your phone number"
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+              style={styles.input}
+              outlineColor="#e2e8f0"
+              activeOutlineColor="#0f172a"
+              contentStyle={styles.inputContent}
+            />
+          </View>
+
+          <View style={styles.infoBox}>
+            <Ionicons name="information-circle-outline" size={20} color="#64748b" />
+            <Text style={styles.infoText}>
+              Your email address (${user?.email}) cannot be changed.
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
+        <Button 
+          mode="contained" 
+          onPress={handleUpdate} 
+          loading={loading}
+          disabled={loading}
+          style={styles.saveButton}
+          buttonColor="#0f172a"
+          textColor="#fff"
+        >
+          Save Changes
+        </Button>
+        <Button 
+          mode="outlined" 
+          onPress={() => router.back()} 
+          style={styles.cancelButton}
+          textColor="#64748b"
+        >
+          Cancel
+        </Button>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#f1f5f9',
   },
   backButton: { padding: 4 },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: '#0f172a' },
-  content: { flex: 1, padding: 20 },
-  form: { gap: 12 },
-  inputGroup: { marginBottom: 4 },
-  label: { fontSize: 14, fontWeight: '600', color: '#0f172a', marginBottom: 6 },
+  headerTitle: { fontSize: 20, fontWeight: '800', color: '#0f172a' },
+  form: { padding: 24, gap: 20 },
+  inputGroup: { gap: 8 },
+  label: { fontSize: 14, fontWeight: '700', color: '#64748b', marginLeft: 4 },
   input: { backgroundColor: '#fff' },
-  disabledInput: { backgroundColor: '#f1f5f9' },
-  helperText: { fontSize: 12, color: '#64748b', marginTop: 4 },
-  buttonContainer: { gap: 10, marginTop: 20, marginBottom: 40 },
-  saveButton: { borderRadius: 10 },
-  cancelButton: { borderRadius: 10, borderColor: '#64748b' },
-  snackbar: { borderRadius: 12, marginHorizontal: 16, marginBottom: 24 },
-  snackbarText: { color: '#fff', fontSize: 15, fontWeight: '600', textAlign: 'center' },
+  inputContent: { fontSize: 16, fontWeight: '500' },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    padding: 16,
+    borderRadius: 12,
+    gap: 10,
+    marginTop: 8,
+  },
+  infoText: { flex: 1, fontSize: 13, color: '#64748b', lineHeight: 18, fontWeight: '500' },
+  footer: { padding: 24, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#f1f5f9', gap: 12 },
+  saveButton: { borderRadius: 16, height: 54, justifyContent: 'center' },
+  cancelButton: { borderRadius: 16, height: 54, justifyContent: 'center', borderColor: '#e2e8f0' },
 });

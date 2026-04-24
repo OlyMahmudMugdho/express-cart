@@ -26,11 +26,17 @@ export class CheckoutService {
   ) {}
 
   async getOrders(userId: string) {
-    return this.orderRepo.find({
+    const orders = await this.orderRepo.find({
       where: { userId },
       relations: ['items'],
       order: { createdAt: 'DESC' },
     });
+    for (const order of orders) {
+      if (order.items) {
+        order.items = [...order.items];
+      }
+    }
+    return orders;
   }
 
   async findAllOrders() {
@@ -43,6 +49,9 @@ export class CheckoutService {
       relations: ['items', 'user']
     });
     if (!order) throw new NotFoundException('Order not found');
+    if (order.items) {
+      order.items = [...order.items];
+    }
     return order;
   }
 

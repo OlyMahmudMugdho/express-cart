@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, FlatList, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { ActivityIndicator, Text, Searchbar, Chip, Menu, Divider } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -31,6 +31,8 @@ export default function Products() {
   const [sort, setSort] = useState('newest');
   const [menuVisible, setMenuVisible] = useState(false);
 
+  const [refreshing, setRefreshing] = useState(false);
+
   // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -52,6 +54,14 @@ export default function Products() {
     fetchCategories();
   }, []);
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    setPage(1);
+    setHasMore(true);
+    await fetchProducts(1, debouncedSearch, selectedCategoryId, sort);
+    setRefreshing(false);
+  }, [debouncedSearch, selectedCategoryId, sort, fetchProducts]);
+
   const fetchProducts = useCallback(async (pageNum: number, search: string, catId: string | null, sortVal: string) => {
     if (loading) return;
     setLoading(true);
@@ -71,7 +81,7 @@ export default function Products() {
     } finally {
       setLoading(false);
     }
-  }, [loading]);
+  }, [loading, api]);
 
   useEffect(() => {
     setPage(1);
@@ -182,10 +192,14 @@ export default function Products() {
       </View>
 
       <FlatList
-        data={loading && page === 1 ? [1, 2, 3, 4, 5, 6] : products}
+        data={loading && page === 1 && !refreshing ? [1, 2, 3, 4, 5, 6] : products}
         keyExtractor={(item, index) => (typeof item === 'number' ? `skeleton-${index}` : `${item.id}-${index}`)}
         numColumns={2}
         contentContainerStyle={styles.list}
+        columnWrapperStyle={styles.columnWrapper}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0f172a" colors={["#0f172a"]} />
+        }
         renderItem={({ item }) => {
           if (typeof item === 'number') return <ProductSkeleton />;
           return (
@@ -208,13 +222,13 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    paddingBottom: 12,
+    borderBottomColor: '#f1f5f9',
+    paddingBottom: 16,
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 12,
     gap: 12,
   },
@@ -222,32 +236,34 @@ const styles = StyleSheet.create({
     flex: 1,
     elevation: 0, 
     backgroundColor: '#f1f5f9',
-    borderRadius: 12,
-    height: 44,
+    borderRadius: 16,
+    height: 48,
   },
   searchInput: {
     color: '#0f172a',
-    fontSize: 14,
+    fontSize: 15,
     minHeight: 0,
   },
   filterButton: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     backgroundColor: '#f1f5f9',
-    borderRadius: 12,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   categoryList: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 16,
-    gap: 8,
+    gap: 10,
   },
   chip: {
     backgroundColor: '#f1f5f9',
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: 0,
-    height: 36,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   selectedChip: {
     backgroundColor: '#0f172a',
@@ -255,7 +271,12 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 13,
     color: '#64748b',
-    fontWeight: '500',
+    fontWeight: '600',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    marginVertical: 0,
+    marginHorizontal: 8, // Added horizontal margin for better spacing
+    paddingVertical: 0,
   },
   selectedChipText: {
     color: '#fff',
@@ -263,12 +284,17 @@ const styles = StyleSheet.create({
   },
   menuContent: {
     backgroundColor: '#fff',
-    borderRadius: 16,
-    marginTop: 48,
-    width: 200,
+    borderRadius: 20,
+    marginTop: 52,
+    width: 220,
+    paddingVertical: 8,
+    elevation: 10,
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
   },
   menuHeader: {
-    padding: 12,
+    padding: 16,
     paddingBottom: 8,
   },
   menuTitle: {
@@ -276,22 +302,31 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#94a3b8',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   menuDivider: {
     backgroundColor: '#f1f5f9',
+    marginHorizontal: 8,
   },
   list: {
-    padding: 8,
-    paddingTop: 12,
+    paddingHorizontal: 12,
+    paddingTop: 16,
+    paddingBottom: 40,
   },
-  column: { flex: 1 / 2 },
+  columnWrapper: {
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+  },
+  column: { 
+    width: '48%', // Explicit width to allow gap
+  },
   loader: { marginVertical: 20 },
-  emptyText: { textAlign: 'center', marginTop: 50, color: '#64748b' },
+  emptyText: { textAlign: 'center', marginTop: 50, color: '#64748b', fontSize: 16, fontWeight: '500' },
   skeletonCard: {
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 12,
-    margin: 8,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
 });

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { Text, Button, Snackbar } from 'react-native-paper';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, ScrollView, StyleSheet, Image, TouchableOpacity, RefreshControl } from 'react-native';
+import { Text, Button } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -8,6 +8,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApi } from '../../utils/api';
 import Skeleton from '../../components/Skeleton';
+import Toast from '../../components/Toast';
 
 export default function ProductDetail() {
   const { id } = useLocalSearchParams();
@@ -18,15 +19,13 @@ export default function ProductDetail() {
   
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
-  useEffect(() => {
-    if (id) fetchProduct();
-  }, [id]);
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       const data = await api.getProduct(id as string);
       setProduct(data);
@@ -35,17 +34,29 @@ export default function ProductDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, api]);
+
+  useEffect(() => {
+    if (id) fetchProduct();
+  }, [id, fetchProduct]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchProduct();
+    setRefreshing(false);
+  }, [fetchProduct]);
 
   const handleAddToCart = async () => {
     setAdding(true);
     try {
       await api.addToCart(id as string, 1);
-      setSnackbarMessage('Added to cart!');
-      setSnackbarVisible(true);
+      setToastMessage('Added to cart successfully!');
+      setToastType('success');
+      setToastVisible(true);
     } catch (err: any) {
-      setSnackbarMessage(err.message || 'Failed to add to cart');
-      setSnackbarVisible(true);
+      setToastMessage(err.message || 'Failed to add to cart');
+      setToastType('error');
+      setToastVisible(true);
     } finally {
       setAdding(false);
     }
@@ -66,7 +77,7 @@ export default function ProductDetail() {
     </View>
   );
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.container}>
         {isFocused && <StatusBar style="dark" />}
@@ -75,12 +86,25 @@ export default function ProductDetail() {
     );
   }
 
-  if (!product) return <Text>Product not found</Text>;
+  if (!product) return <View style={styles.container}><Text>Product not found</Text></View>;
 
   return (
     <View style={styles.container}>
       {isFocused && <StatusBar style="dark" />}
-      <ScrollView showsVerticalScrollIndicator={false}>
+      
+      <Toast 
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onDismiss={() => setToastVisible(false)}
+      />
+
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0f172a" colors={["#0f172a"]} />
+        }
+      >
         <View style={styles.imageContainer}>
           <Image 
             source={{ uri: product.images?.[0]?.url || 'https://via.placeholder.com/400' }} 
@@ -119,18 +143,6 @@ export default function ProductDetail() {
           Add to Cart
         </Button>
       </View>
-
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        duration={3000}
-        style={styles.snackbar}
-      >
-        <View style={styles.snackbarContent}>
-          <Ionicons name="checkmark-circle" size={20} color="#fff" />
-          <Text style={styles.snackbarText}>{snackbarMessage}</Text>
-        </View>
-      </Snackbar>
     </View>
   );
 }
@@ -164,6 +176,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
+    zIndex: 10,
   },
   content: {
     padding: 24,
@@ -214,22 +227,5 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     height: 54,
     justifyContent: 'center',
-  },
-  snackbar: {
-    backgroundColor: '#0f172a',
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginBottom: 24,
-    elevation: 6,
-  },
-  snackbarContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  snackbarText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
   },
 });

@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # Recommended security permission from setup-node docs
+      contents: read
     
     steps:
       - name: 🏗 Checkout repository
@@ -20,8 +20,9 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
-          # This tells the action exactly where the lockfile lives
-          cache-dependency-path: mobile/package-lock.json
+          # Use multi-line syntax with the explicit dot-slash prefix
+          cache-dependency-path: |
+            ./mobile/package-lock.json
 
       - name: 🏗 Setup Java 17
         uses: actions/setup-java@v4
@@ -32,7 +33,7 @@ jobs:
 
       - name: 📦 Install dependencies
         working-directory: mobile
-        run: npm ci # 'npm ci' is faster and more reliable in CI than 'npm install'
+        run: npm ci
 
       - name: 🛠 Prebuild (Generate /android folder)
         working-directory: mobile
@@ -51,7 +52,6 @@ jobs:
         working-directory: mobile/android
         run: ./gradlew assembleRelease
         env:
-          # Injected into the build process
           MYAPP_RELEASE_STORE_FILE: release.keystore
           MYAPP_RELEASE_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           MYAPP_RELEASE_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}

@@ -8,16 +8,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # Recommended security permission from setup-node docs
+    
     steps:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v4
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'npm'
-          # Explicitly pointing to the file inside the mobile folder
+          # This tells the action exactly where the lockfile lives
           cache-dependency-path: mobile/package-lock.json
 
       - name: 🏗 Setup Java 17
@@ -29,7 +32,7 @@ jobs:
 
       - name: 📦 Install dependencies
         working-directory: mobile
-        run: npm install
+        run: npm ci # 'npm ci' is faster and more reliable in CI than 'npm install'
 
       - name: 🛠 Prebuild (Generate /android folder)
         working-directory: mobile
@@ -48,8 +51,7 @@ jobs:
         working-directory: mobile/android
         run: ./gradlew assembleRelease
         env:
-          # These env vars must be referenced in your android/app/build.gradle
-          # If they aren't, the build will finish but might not be signed.
+          # Injected into the build process
           MYAPP_RELEASE_STORE_FILE: release.keystore
           MYAPP_RELEASE_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           MYAPP_RELEASE_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}

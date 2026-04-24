@@ -8,22 +8,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [24.x] # Kept as Node 24 per your preference
 
     steps:
       - name: 🏗 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: 🏗 Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - name: 🏗 Use Node.js 24
+        uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24
           cache: 'npm'
-          # This multi-line syntax with ./ is the specific fix for the resolution error
-          cache-dependency-path: |
-            ./mobile/package-lock.json
+          cache-dependency-path: mobile/package-lock.json
 
       - name: 🏗 Setup Java 17
         uses: actions/setup-java@v4

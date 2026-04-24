@@ -8,19 +8,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    
+    strategy:
+      matrix:
+        node-version: [24.x] # Kept as Node 24 per your preference
+
     steps:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v6
+      - name: 🏗 Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          # Use multi-line syntax with the explicit dot-slash prefix
+          # This multi-line syntax with ./ is the specific fix for the resolution error
           cache-dependency-path: |
             ./mobile/package-lock.json
 

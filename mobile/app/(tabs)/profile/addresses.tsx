@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApi } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import Skeleton from '../../components/Skeleton';
 
 export default function Addresses() {
   const api = useApi();
@@ -80,9 +81,18 @@ export default function Addresses() {
     }
   };
 
-  if (loading) return (
-    <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-      <ActivityIndicator size="large" color="#0f172a" />
+  const AddressSkeleton = () => (
+    <View style={styles.list}>
+      {[1, 2].map((i) => (
+        <View key={i} style={styles.card}>
+          <View style={{ padding: 16 }}>
+            <Skeleton width={60} height={12} style={{ marginBottom: 8 }} />
+            <Skeleton width="80%" height={18} />
+            <Skeleton width="60%" height={14} style={{ marginTop: 8 }} />
+            <Skeleton width="40%" height={14} style={{ marginTop: 4 }} />
+          </View>
+        </View>
+      ))}
     </View>
   );
 
@@ -99,29 +109,33 @@ export default function Addresses() {
         </Button>
       </View>
 
-      <FlatList
-        data={addresses}
-        keyExtractor={(item) => item.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Card style={styles.card}>
-            <Card.Content>
-              <View style={styles.cardHeader}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.label}>{item.label || 'Address'}</Text>
-                  <Text style={styles.street}>{item.street}</Text>
+      {loading ? (
+        <AddressSkeleton />
+      ) : (
+        <FlatList
+          data={addresses}
+          keyExtractor={(item) => item.id}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <Card style={styles.card}>
+              <Card.Content>
+                <View style={styles.cardHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.label}>{item.label || 'Address'}</Text>
+                    <Text style={styles.street}>{item.street}</Text>
+                  </View>
+                  <IconButton icon="trash-can-outline" iconColor="#ef4444" onPress={() => handleDeleteAddress(item.id)} />
                 </View>
-                <IconButton icon="trash-can-outline" iconColor="#ef4444" onPress={() => handleDeleteAddress(item.id)} />
-              </View>
-              <Text style={styles.details}>{item.city}, {item.state} {item.postalCode}</Text>
-              <Text style={styles.details}>{item.country}</Text>
-              {item.isDefault && <Text style={styles.defaultBadge}>Default Address</Text>}
-            </Card.Content>
-          </Card>
-        )}
-        ListEmptyComponent={<Text style={styles.empty}>No addresses added yet.</Text>}
-      />
+                <Text style={styles.details}>{item.city}, {item.state} {item.postalCode}</Text>
+                <Text style={styles.details}>{item.country}</Text>
+                {item.isDefault && <Text style={styles.defaultBadge}>Default Address</Text>}
+              </Card.Content>
+            </Card>
+          )}
+          ListEmptyComponent={<Text style={styles.empty}>No addresses added yet.</Text>}
+        />
+      )}
 
       <Portal>
         <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)} contentContainerStyle={styles.modal}>

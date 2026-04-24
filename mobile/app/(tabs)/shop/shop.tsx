@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import ProductCard from '../../components/ProductCard';
+import Skeleton from '../../components/Skeleton';
 import { useApi } from '../../utils/api';
 
 const SORT_OPTIONS = [
@@ -85,6 +86,16 @@ export default function Products() {
       fetchProducts(nextPage, debouncedSearch, selectedCategoryId, sort);
     }
   };
+
+  const ProductSkeleton = () => (
+    <View style={styles.column}>
+      <View style={styles.skeletonCard}>
+        <Skeleton height={150} borderRadius={12} />
+        <Skeleton height={16} width="80%" style={{ marginTop: 12 }} />
+        <Skeleton height={16} width="40%" style={{ marginTop: 8 }} />
+      </View>
+    </View>
+  );
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -171,19 +182,22 @@ export default function Products() {
       </View>
 
       <FlatList
-        data={products}
-        keyExtractor={(p, index) => `${p.id}-${index}`}
+        data={loading && page === 1 ? [1, 2, 3, 4, 5, 6] : products}
+        keyExtractor={(item, index) => (typeof item === 'number' ? `skeleton-${index}` : `${item.id}-${index}`)}
         numColumns={2}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <View style={styles.column}>
-            <ProductCard item={item} />
-          </View>
-        )}
+        renderItem={({ item }) => {
+          if (typeof item === 'number') return <ProductSkeleton />;
+          return (
+            <View style={styles.column}>
+              <ProductCard item={item} />
+            </View>
+          );
+        }}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         ListEmptyComponent={!loading ? <Text style={styles.emptyText}>No products found</Text> : null}
-        ListFooterComponent={loading ? <ActivityIndicator style={styles.loader} color="#0f172a" /> : null}
+        ListFooterComponent={loading && page > 1 ? <ActivityIndicator style={styles.loader} color="#0f172a" /> : null}
       />
     </View>
   );
@@ -274,4 +288,10 @@ const styles = StyleSheet.create({
   column: { flex: 1 / 2 },
   loader: { marginVertical: 20 },
   emptyText: { textAlign: 'center', marginTop: 50, color: '#64748b' },
+  skeletonCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 12,
+    margin: 8,
+  },
 });

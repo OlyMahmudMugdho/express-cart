@@ -43,6 +43,12 @@ export default function TabLayout() {
           headerShown: false,
           tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} /> 
         }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.push('/(tabs)/profile/account');
+          },
+        }}
       />
     </Tabs>
   );

@@ -156,6 +156,15 @@ export function useApi() {
       }
       return res.json();
     },
+    async getOrder(id: string) {
+      const res = await fetch(`${BASE}/checkout/orders/${id}/details`, {
+        headers: getHeaders(),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to fetch order details');
+      }
+      return res.json();
+    },
     async getOrders() {
       const h = getHeaders();
       console.log('getOrders - hasAuth:', !!h.Authorization);

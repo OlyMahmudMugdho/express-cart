@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Link, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useIsFocused } from '@react-navigation/native';
+import Skeleton from '../../components/Skeleton';
 
 function CartHeader() {
   const insets = useSafeAreaInsets();
@@ -63,8 +64,8 @@ export default function Cart() {
   const api = useApi();
   const auth = useAuth();
   const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
   const { token, user, isLoading: authLoading } = auth;
-  const [authReady, setAuthReady] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,27 +73,20 @@ export default function Cart() {
 
   const fetchCart = useCallback(async () => {
     const currentToken = auth.token;
-    console.log('fetchCart called, token:', !!currentToken);
     if (!currentToken) {
-      console.log('No token, setting empty');
       setLoading(false);
       setItems([]);
       return;
     }
     try {
-      console.log('Fetching cart...');
       const res = await api.getCart();
-      console.log('getCart response:', JSON.stringify(res).substring(0, 500));
       if (res && Array.isArray(res)) {
-        console.log('Setting items from array, count:', res.length);
         setItems(res);
         setError(null);
       } else if (res && res.items) {
-        console.log('Setting items from object, count:', res.items.length);
         setItems(res.items);
         setError(null);
       } else {
-        console.log('No items found in response');
         setItems([]);
       }
     } catch (err) {
@@ -104,7 +98,6 @@ export default function Cart() {
     }
   }, [auth.token]);
 
-  // Refresh cart when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       if (!authLoading && token) {
@@ -113,23 +106,15 @@ export default function Cart() {
     }, [token, authLoading, fetchCart])
   );
 
-  // Fetch on mount and when token changes
   useEffect(() => {
-    console.log('Cart effect - authLoading:', authLoading, 'token:', !!token);
-    
     const loadCart = async () => {
       if (!authLoading && token) {
-        console.log('Auth ready, fetching cart');
         await fetchCart();
       } else if (!authLoading && !token) {
-        console.log('No token, showing empty');
         setItems([]);
         setLoading(false);
-      } else {
-        console.log('Auth still loading...');
       }
     };
-    
     loadCart();
   }, [token, authLoading, fetchCart]);
 
@@ -140,14 +125,12 @@ export default function Cart() {
   };
 
   const updateQuantity = async (itemId: string, quantity: number) => {
-    console.log('Button pressed - itemId:', itemId, 'quantity:', quantity);
     if (quantity < 1) {
       removeItem(itemId);
       return;
     }
     try {
-      const res = await api.updateCartItem(itemId, quantity);
-      console.log('Update quantity response:', res);
+      await api.updateCartItem(itemId, quantity);
       fetchCart();
     } catch (err) {
       console.warn('Update quantity error:', err);
@@ -155,10 +138,8 @@ export default function Cart() {
   };
 
   const removeItem = async (itemId: string) => {
-    console.log('Removing item:', itemId);
     try {
-      const res = await api.removeCartItem(itemId);
-      console.log('Remove item response:', res);
+      await api.removeCartItem(itemId);
       fetchCart();
     } catch (err) {
       console.warn('Remove item error:', err);
@@ -170,12 +151,31 @@ export default function Cart() {
     return sum + price * item.quantity;
   }, 0);
 
+  const CartSkeleton = () => (
+    <View style={styles.listContent}>
+      {[1, 2, 3].map((i) => (
+        <View key={i} style={styles.skeletonItem}>
+          <Skeleton width={80} height={80} borderRadius={12} />
+          <View style={{ flex: 1, marginLeft: 12, gap: 8 }}>
+            <Skeleton width="90%" height={16} />
+            <Skeleton width="40%" height={16} />
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+              <Skeleton width={32} height={32} borderRadius={8} />
+              <Skeleton width={32} height={32} borderRadius={8} />
+              <Skeleton width={32} height={32} borderRadius={8} />
+            </View>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+
   if (loading || authLoading) {
     return (
-      <View style={styles.emptyContainer}>
-        {isFocused && <StatusBar style="dark" />}
-        <Text style={styles.emptyText}>Loading...</Text>
-        <Text style={styles.debugText}>Auth loading: {String(authLoading)}, Token: {token ? 'present' : 'missing'}</Text>
+      <View style={styles.container}>
+        <CartHeader />
+        {isFocused && <StatusBar style="light" />}
+        <CartSkeleton />
       </View>
     );
   }
@@ -185,7 +185,6 @@ export default function Cart() {
       <View style={styles.emptyContainer}>
         {isFocused && <StatusBar style="dark" />}
         <Text style={styles.errorText}>{error}</Text>
-        <Text style={styles.debugText}>Token: {token ? 'present' : 'missing'}</Text>
         <Button onPress={fetchCart}>Retry</Button>
       </View>
     );
@@ -227,9 +226,7 @@ export default function Cart() {
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
           const product = item.product;
-          console.log('Cart item product:', JSON.stringify(product));
           let image = product?.images?.[0]?.url || product?.image;
-          // If no image, use a placeholder background color
           return (
             <View style={styles.cartItem}>
               {image ? (
@@ -243,20 +240,20 @@ export default function Cart() {
                 <View style={styles.quantityRow}>
                   <TouchableOpacity 
                     style={styles.qtyButton} 
-                    onPressIn={() => { console.log('Minus pressed'); updateQuantity(item.id, item.quantity - 1); }}
+                    onPress={() => updateQuantity(item.id, item.quantity - 1)}
                   >
                     <Ionicons name="remove" size={18} color="#fff" />
                   </TouchableOpacity>
                   <Text style={styles.quantity}>{item.quantity}</Text>
                   <TouchableOpacity 
                     style={styles.qtyButton} 
-                    onPressIn={() => { console.log('Plus pressed'); updateQuantity(item.id, item.quantity + 1); }}
+                    onPress={() => updateQuantity(item.id, item.quantity + 1)}
                   >
                     <Ionicons name="add" size={18} color="#fff" />
                   </TouchableOpacity>
                   <TouchableOpacity 
                     style={styles.deleteButton} 
-                    onPressIn={() => { console.log('Delete pressed'); removeItem(item.id); }}
+                    onPress={() => removeItem(item.id)}
                   >
                     <Ionicons name="trash" size={18} color="#fff" />
                   </TouchableOpacity>
@@ -429,22 +426,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748b',
   },
-  emptyText: {
-    fontSize: 16,
-    color: '#64748b',
-    textAlign: 'center',
-    marginTop: 40,
-  },
   errorText: {
     fontSize: 14,
     color: '#ef4444',
     textAlign: 'center',
-    marginTop: 8,
+    marginBottom: 16,
   },
-  debugText: {
-    fontSize: 12,
-    color: '#94a3b8',
-    textAlign: 'center',
-    marginTop: 4,
+  skeletonItem: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 12,
   },
 });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Text, TextInput, Button, Snackbar, ActivityIndicator } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -7,11 +7,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useApi } from '../../utils/api';
 import * as Haptics from 'expo-haptics';
+import Skeleton from '../../components/Skeleton';
+import { StatusBar } from 'expo-status-bar';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function EditProfile() {
   const router = useRouter();
   const api = useApi();
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const { user, updateUser, token, isLoading: authLoading } = useAuth();
   
   const [firstName, setFirstName] = useState(user?.firstName || '');
@@ -89,16 +93,24 @@ export default function EditProfile() {
     router.replace('/profile/account');
   };
 
-  if (fetching) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#0f172a" />
+  const EditSkeleton = () => (
+    <View style={styles.content}>
+      {[1, 2, 3, 4].map((i) => (
+        <View key={i} style={styles.inputGroup}>
+          <Skeleton width="30%" height={14} style={{ marginBottom: 8 }} />
+          <Skeleton width="100%" height={56} borderRadius={4} />
+        </View>
+      ))}
+      <View style={{ gap: 10, marginTop: 20 }}>
+        <Skeleton width="100%" height={48} borderRadius={10} />
+        <Skeleton width="100%" height={48} borderRadius={10} />
       </View>
-    );
-  }
+    </View>
+  );
 
   return (
     <View style={styles.container}>
+      {isFocused && <StatusBar style="dark" />}
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#0f172a" />
@@ -107,83 +119,87 @@ export default function EditProfile() {
         <View style={{ width: 24 }} />
       </View>
 
-      <View style={styles.content}>
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>First Name</Text>
-            <TextInput
-              mode="outlined"
-              value={firstName}
-              onChangeText={setFirstName}
-              style={styles.input}
-              outlineColor="#e2e8f0"
-              activeOutlineColor="#0f172a"
-              textColor="#0f172a"
-            />
+      {fetching ? (
+        <EditSkeleton />
+      ) : (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.form}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>First Name</Text>
+              <TextInput
+                mode="outlined"
+                value={firstName}
+                onChangeText={setFirstName}
+                style={styles.input}
+                outlineColor="#e2e8f0"
+                activeOutlineColor="#0f172a"
+                textColor="#0f172a"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Last Name</Text>
+              <TextInput
+                mode="outlined"
+                value={lastName}
+                onChangeText={setLastName}
+                style={styles.input}
+                outlineColor="#e2e8f0"
+                activeOutlineColor="#0f172a"
+                textColor="#0f172a"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Phone Number</Text>
+              <TextInput
+                mode="outlined"
+                value={phone}
+                onChangeText={setPhone}
+                style={styles.input}
+                outlineColor="#e2e8f0"
+                activeOutlineColor="#0f172a"
+                textColor="#0f172a"
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                mode="outlined"
+                value={user?.email || ''}
+                style={[styles.input, styles.disabledInput]}
+                outlineColor="#e2e8f0"
+                textColor="#64748b"
+                disabled
+              />
+              <Text style={styles.helperText}>Email cannot be changed</Text>
+            </View>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Last Name</Text>
-            <TextInput
+          <View style={styles.buttonContainer}>
+            <Button
+              mode="contained"
+              onPress={handleSave}
+              loading={loading}
+              style={styles.saveButton}
+              buttonColor="#0f172a"
+              textColor="#fff"
+            >
+              Save Changes
+            </Button>
+            <Button
               mode="outlined"
-              value={lastName}
-              onChangeText={setLastName}
-              style={styles.input}
-              outlineColor="#e2e8f0"
-              activeOutlineColor="#0f172a"
-              textColor="#0f172a"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Phone Number</Text>
-            <TextInput
-              mode="outlined"
-              value={phone}
-              onChangeText={setPhone}
-              style={styles.input}
-              outlineColor="#e2e8f0"
-              activeOutlineColor="#0f172a"
-              textColor="#0f172a"
-              keyboardType="phone-pad"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              mode="outlined"
-              value={user?.email || ''}
-              style={[styles.input, styles.disabledInput]}
-              outlineColor="#e2e8f0"
+              onPress={handleCancel}
+              style={styles.cancelButton}
               textColor="#64748b"
-              disabled
-            />
-            <Text style={styles.helperText}>Email cannot be changed</Text>
+            >
+              Cancel
+            </Button>
           </View>
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <Button
-            mode="contained"
-            onPress={handleSave}
-            loading={loading}
-            style={styles.saveButton}
-            buttonColor="#0f172a"
-            textColor="#fff"
-          >
-            Save Changes
-          </Button>
-          <Button
-            mode="outlined"
-            onPress={handleCancel}
-            style={styles.cancelButton}
-            textColor="#64748b"
-          >
-            Cancel
-          </Button>
-        </View>
-      </View>
+        </ScrollView>
+      )}
 
       <Snackbar
         visible={snackbarVisible}
@@ -218,7 +234,7 @@ const styles = StyleSheet.create({
   input: { backgroundColor: '#fff' },
   disabledInput: { backgroundColor: '#f1f5f9' },
   helperText: { fontSize: 12, color: '#64748b', marginTop: 4 },
-  buttonContainer: { gap: 10, marginTop: 20 },
+  buttonContainer: { gap: 10, marginTop: 20, marginBottom: 40 },
   saveButton: { borderRadius: 10 },
   cancelButton: { borderRadius: 10, borderColor: '#64748b' },
   snackbar: { borderRadius: 12, marginHorizontal: 16, marginBottom: 24 },

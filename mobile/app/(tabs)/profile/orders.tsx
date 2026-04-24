@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApi } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import Skeleton from '../../components/Skeleton';
 
 interface OrderItem {
   id: string;
@@ -90,10 +91,42 @@ export default function Orders() {
     }
   };
 
+  const OrderSkeleton = () => (
+    <View style={styles.listContent}>
+      {[1, 2, 3].map((i) => (
+        <View key={i} style={styles.orderCard}>
+          <View style={[styles.orderHeader, { marginBottom: 12 }]}>
+            <View style={{ gap: 4 }}>
+              <Skeleton width={120} height={16} />
+              <Skeleton width={80} height={12} />
+            </View>
+            <Skeleton width={70} height={24} borderRadius={8} />
+          </View>
+          <View style={styles.orderItems}>
+            <Skeleton width="90%" height={14} style={{ marginTop: 12 }} />
+            <Skeleton width="60%" height={14} style={{ marginTop: 8 }} />
+          </View>
+          <View style={styles.orderFooter}>
+            <Skeleton width={40} height={14} />
+            <Skeleton width={60} height={20} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#0f172a" />
+      <View style={styles.container}>
+        {isFocused && <StatusBar style="dark" />}
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#0f172a" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Order History</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <OrderSkeleton />
       </View>
     );
   }
@@ -133,7 +166,13 @@ export default function Orders() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
-            <View style={styles.orderCard}>
+            <TouchableOpacity 
+              style={styles.orderCard}
+              onPress={() => router.push({
+                pathname: '/profile/order_details',
+                params: { id: item.id }
+              })}
+            >
               <View style={styles.orderHeader}>
                 <View>
                   <Text style={styles.orderId}>Order #{item.id.slice(0, 8)}</Text>
@@ -159,10 +198,16 @@ export default function Orders() {
                 )}
               </View>
               <View style={styles.orderFooter}>
-                <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>${Number(item.total).toFixed(2)}</Text>
+                <View>
+                  <Text style={styles.totalLabel}>Total</Text>
+                  <Text style={styles.totalValue}>${Number(item.total).toFixed(2)}</Text>
+                </View>
+                <View style={styles.detailsButton}>
+                  <Text style={styles.detailsButtonText}>View Details</Text>
+                  <Ionicons name="chevron-forward" size={16} color="#0f172a" />
+                </View>
               </View>
-            </View>
+            </TouchableOpacity>
           )}
         />
       )}
@@ -273,6 +318,20 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 18,
     fontWeight: '800',
+    color: '#0f172a',
+  },
+  detailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 4,
+  },
+  detailsButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
     color: '#0f172a',
   },
   emptyContainer: {

@@ -6,6 +6,7 @@ export default function ProfileLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="account" />
       <Stack.Screen name="orders" />
+      <Stack.Screen name="order_details" />
       <Stack.Screen name="addresses" />
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />

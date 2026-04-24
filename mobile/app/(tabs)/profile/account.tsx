@@ -8,6 +8,7 @@ import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useIsFocused } from '@react-navigation/native';
+import Skeleton from '../../components/Skeleton';
 
 interface MenuItemProps {
   icon: string;
@@ -35,18 +36,21 @@ function MenuItem({ icon, title, subtitle, onPress, showArrow = true }: MenuItem
 }
 
 export default function Account() {
-  const { user, signOut, token } = useAuth();
+  const { user, signOut, token, isLoading: authLoading } = useAuth();
   const api = useApi();
   const router = useRouter();
   const [ordersCount, setOrdersCount] = useState(0);
+  const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
 
   useEffect(() => {
     if (token) {
       fetchOrdersCount();
+    } else if (!authLoading) {
+      setLoading(false);
     }
-  }, [token]);
+  }, [token, authLoading]);
 
   const fetchOrdersCount = async () => {
     try {
@@ -56,6 +60,8 @@ export default function Account() {
     } catch (err) {
       console.warn(err);
       setOrdersCount(0);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,6 +70,55 @@ export default function Account() {
   };
 
   const displayName = user?.firstName || user?.email?.split('@')[0] || 'User';
+
+  const ProfileSkeleton = () => (
+    <View style={styles.contentContainer}>
+      <View style={styles.profileHeader}>
+        <Skeleton width={80} height={80} borderRadius={40} />
+        <Skeleton width="40%" height={24} style={{ marginTop: 12 }} />
+        <Skeleton width="60%" height={16} style={{ marginTop: 8 }} />
+      </View>
+      <View style={styles.statsContainer}>
+        <View style={styles.statItem}>
+          <Skeleton width={40} height={24} />
+          <Skeleton width={50} height={12} style={{ marginTop: 4 }} />
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Skeleton width={40} height={24} />
+          <Skeleton width={50} height={12} style={{ marginTop: 4 }} />
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Skeleton width={40} height={24} />
+          <Skeleton width={50} height={12} style={{ marginTop: 4 }} />
+        </View>
+      </View>
+      {[1, 2].map((i) => (
+        <View key={i} style={{ marginBottom: 24 }}>
+          <Skeleton width="30%" height={14} style={{ marginBottom: 8, marginLeft: 4 }} />
+          <View style={styles.menuCard}>
+            <View style={{ padding: 16, flexDirection: 'row', alignItems: 'center' }}>
+              <Skeleton width={36} height={36} borderRadius={10} />
+              <View style={{ flex: 1, marginLeft: 12, gap: 4 }}>
+                <Skeleton width="60%" height={16} />
+                <Skeleton width="40%" height={12} />
+              </View>
+            </View>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+
+  if (loading || authLoading) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        {isFocused && <StatusBar style="dark" />}
+        <ProfileSkeleton />
+      </View>
+    );
+  }
 
   if (!user || !token) {
     return (

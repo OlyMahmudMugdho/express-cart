@@ -224,6 +224,7 @@ export default function Checkout() {
                     style={styles.input}
                     outlineColor="#e2e8f0"
                     activeOutlineColor="#0f172a"
+                    textColor="#0f172a"
                   />
                   <TextInput
                     mode="outlined"
@@ -233,6 +234,7 @@ export default function Checkout() {
                     style={styles.input}
                     outlineColor="#e2e8f0"
                     activeOutlineColor="#0f172a"
+                    textColor="#0f172a"
                   />
                   <View style={styles.row}>
                     <TextInput
@@ -243,6 +245,7 @@ export default function Checkout() {
                       style={[styles.input, { flex: 1 }]}
                       outlineColor="#e2e8f0"
                       activeOutlineColor="#0f172a"
+                    textColor="#0f172a"
                     />
                     <TextInput
                       mode="outlined"
@@ -252,6 +255,7 @@ export default function Checkout() {
                       style={[styles.input, { flex: 1 }]}
                       outlineColor="#e2e8f0"
                       activeOutlineColor="#0f172a"
+                    textColor="#0f172a"
                     />
                   </View>
                   <View style={styles.row}>
@@ -263,6 +267,7 @@ export default function Checkout() {
                       style={[styles.input, { flex: 1 }]}
                       outlineColor="#e2e8f0"
                       activeOutlineColor="#0f172a"
+                    textColor="#0f172a"
                     />
                     <TextInput
                       mode="outlined"
@@ -272,6 +277,7 @@ export default function Checkout() {
                       style={[styles.input, { flex: 1 }]}
                       outlineColor="#e2e8f0"
                       activeOutlineColor="#0f172a"
+                    textColor="#0f172a"
                     />
                   </View>
                   <View style={styles.formButtons}>

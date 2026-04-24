@@ -68,6 +68,9 @@ export default function VerifyOtp() {
             style={styles.input}
             keyboardType="number-pad"
             mode="outlined"
+            outlineColor="#cbd5e1"
+            activeOutlineColor="#0f172a"
+            textColor="#0f172a"
             error={!!error}
             maxLength={6}
           />

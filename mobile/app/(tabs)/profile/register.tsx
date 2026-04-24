@@ -57,17 +57,33 @@ export default function Register() {
         </View>
 
         <View style={styles.form}>
-          <TextInput
-            label="First Name"
-            value={firstName}
-            onChangeText={setFirstName}
-            style={styles.input}
-            mode="outlined"
-            outlineColor="#cbd5e1"
-            activeOutlineColor="#0f172a"
-            textColor="#0f172a"
-            error={!!errors.firstName}
-          />
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                label="First Name"
+                value={firstName}
+                onChangeText={setFirstName}
+                style={styles.input}
+                mode="outlined"
+                outlineColor="#cbd5e1"
+                activeOutlineColor="#0f172a"
+                textColor="#0f172a"
+                error={!!errors.firstName}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                label="Last Name"
+                value={lastName}
+                onChangeText={setLastName}
+                style={styles.input}
+                mode="outlined"
+                outlineColor="#cbd5e1"
+                activeOutlineColor="#0f172a"
+                textColor="#0f172a"
+              />
+            </View>
+          </View>
           {errors.firstName && <HelperText type="error">{errors.firstName}</HelperText>}
 
           <TextInput

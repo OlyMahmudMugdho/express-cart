@@ -77,7 +77,8 @@ export default function Account() {
     signOut();
   };
 
-  const displayName = user?.firstName || user?.email?.split('@')[0] || 'User';
+  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ');
+  const displayName = fullName || user?.email?.split('@')[0] || 'User';
 
   const ProfileSkeleton = () => (
     <View style={styles.contentContainer}>

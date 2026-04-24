@@ -76,6 +76,9 @@ export default function ResetPassword() {
               style={styles.input}
               keyboardType="number-pad"
               mode="outlined"
+              outlineColor="#cbd5e1"
+              activeOutlineColor="#0f172a"
+              textColor="#0f172a"
               error={!!errors.code}
               maxLength={6}
             />
@@ -88,6 +91,9 @@ export default function ResetPassword() {
               style={styles.input}
               secureTextEntry
               mode="outlined"
+              outlineColor="#cbd5e1"
+              activeOutlineColor="#0f172a"
+              textColor="#0f172a"
               error={!!errors.password}
             />
             {errors.password && <HelperText type="error">{errors.password}</HelperText>}
@@ -99,6 +105,9 @@ export default function ResetPassword() {
               style={styles.input}
               secureTextEntry
               mode="outlined"
+              outlineColor="#cbd5e1"
+              activeOutlineColor="#0f172a"
+              textColor="#0f172a"
               error={!!errors.confirmPassword}
             />
             {errors.confirmPassword && <HelperText type="error">{errors.confirmPassword}</HelperText>}
@@ -132,6 +141,9 @@ export default function ResetPassword() {
             autoCapitalize="none"
             keyboardType="email-address"
             mode="outlined"
+            outlineColor="#cbd5e1"
+            activeOutlineColor="#0f172a"
+            textColor="#0f172a"
           />
 
           <Button mode="contained" onPress={handleSendOtp} loading={loading} style={styles.button} contentStyle={styles.buttonContent}>

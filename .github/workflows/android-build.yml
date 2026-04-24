@@ -2,7 +2,9 @@ name: Android Native Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+    paths:
+      - "mobile/**"
   workflow_dispatch:
 
 jobs:
@@ -21,8 +23,8 @@ jobs:
       - name: 🏗 Setup Java 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: '17'
+          distribution: "zulu"
+          java-version: "17"
           # Caching disabled because /android folder is generated dynamically
 
       - name: 📦 Install dependencies

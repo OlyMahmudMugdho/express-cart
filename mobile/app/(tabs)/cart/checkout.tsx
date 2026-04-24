@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Image, Platform } from 'react-native';
-import { Text, Button, Card, Divider, RadioButton, TextInput } from 'react-native-paper';
+import { Text, Button, Card, Divider, RadioButton, TextInput, ActivityIndicator } from 'react-native-paper';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -92,16 +92,19 @@ export default function Checkout() {
         paymentMethod
       );
 
-      if (paymentMethod === 'stripe' && res.checkoutUrl) {
-        await WebBrowser.openBrowserAsync(res.checkoutUrl);
+      const orderId = res.order?.id || res.id || res.orderId;
+      const orderNumber = res.order?.orderNumber || res.orderNumber;
+
+      if (paymentMethod === 'stripe' && res.checkoutSessionUrl) {
+        await WebBrowser.openBrowserAsync(res.checkoutSessionUrl);
         router.replace({
           pathname: '/cart/success',
-          params: { orderId: res.orderId, orderNumber: res.orderNumber }
+          params: { orderId, orderNumber, paymentMethod: 'stripe' }
         });
       } else {
         router.replace({
           pathname: '/cart/success',
-          params: { orderId: res.id || res.orderId, orderNumber: res.orderNumber }
+          params: { orderId, orderNumber, paymentMethod: paymentMethod }
         });
       }
     } catch (err: any) {
@@ -135,7 +138,7 @@ export default function Checkout() {
   if (isPlacingOrder) {
     return (
       <View style={styles.waitingContainer}>
-        <Skeleton width={100} height={100} borderRadius={50} />
+        <ActivityIndicator size={60} color="#0f172a" />
         <Text style={styles.waitingTitle}>Processing Order</Text>
         <Text style={styles.waitingSubtitle}>Please wait while we confirm your order...</Text>
       </View>

@@ -1,0 +1,55 @@
+name: Android Native Build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: 🏗 Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: 📦 Install dependencies
+        working-directory: mobile
+        run: npm install
+
+      - name: 🛠 Prebuild (Generate /android folder)
+        working-directory: mobile
+        run: npx expo prebuild --platform android --no-install
+
+      - name: 🔑 Prepare Keystore
+        working-directory: mobile
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
+
+      - name: 🏗 Build with Gradle
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease
+        env:
+          MYAPP_RELEASE_STORE_FILE: release.keystore
+          MYAPP_RELEASE_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          MYAPP_RELEASE_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          MYAPP_RELEASE_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: 📂 Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: mobile/android/app/build/outputs/apk/release/*.apk

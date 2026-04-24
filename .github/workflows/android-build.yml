@@ -2,7 +2,7 @@ name: Android Native Build
 
 on:
   push:
-    branches: [main]
+    branches: [render]
     paths:
       - "mobile/**"
   workflow_dispatch:
